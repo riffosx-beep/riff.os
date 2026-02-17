@@ -20,6 +20,13 @@ const FRAMEWORKS = [
     { id: 'listicle', name: 'Educational List', desc: 'X steps to achieve Y result' },
 ]
 
+const CONTENT_TYPES = [
+    { id: 'short_form', name: 'Short Form Video', desc: 'Punchy, fast-paced (Reels/TikTok/Shorts)' },
+    { id: 'educational', name: 'Educational Breakdown', desc: 'Deep dive into a specific topic' },
+    { id: 'storytelling', name: 'Personal Narrative', desc: 'Vulnerable and authentic storytelling' },
+    { id: 'controversial', name: 'The Hot Take', desc: 'Challenging the status quo' },
+]
+
 interface ScriptConfigProps {
     config: any
     setConfig: (config: any) => void
@@ -78,9 +85,32 @@ export default function ScriptConfig({ config, setConfig, onGenerate, isGenerati
                     </div>
                 </div>
 
-                {/* Step 3: Framework */}
+                {/* Step 3: Content Type */}
                 <div className="space-y-3">
-                    <label className="text-xs font-bold uppercase tracking-wider text-text-muted">Step 3: Framework</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-text-muted">Step 3: Content Type</label>
+                    <div className="space-y-2">
+                        {CONTENT_TYPES.map(t => (
+                            <button
+                                key={t.id}
+                                onClick={() => update('contentType', t.id)}
+                                className={`w-full text-left p-3 rounded-lg border transition-all flex items-center justify-between group ${config.contentType === t.id
+                                    ? 'bg-accent/10 border-accent text-accent'
+                                    : 'bg-surface border-border hover:border-text-muted'
+                                    }`}
+                            >
+                                <div>
+                                    <h4 className={`text-sm font-bold ${config.contentType === t.id ? 'text-accent' : 'text-text-primary'}`}>{t.name}</h4>
+                                    <p className="text-[10px] text-text-muted">{t.desc}</p>
+                                </div>
+                                {config.contentType === t.id && <Check size={16} />}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Step 4: Framework */}
+                <div className="space-y-3">
+                    <label className="text-xs font-bold uppercase tracking-wider text-text-muted">Step 4: Framework</label>
                     <div className="space-y-2">
                         {FRAMEWORKS.map(f => (
                             <button
@@ -101,9 +131,9 @@ export default function ScriptConfig({ config, setConfig, onGenerate, isGenerati
                     </div>
                 </div>
 
-                {/* Step 4: Voice Tone */}
+                {/* Step 5: Voice Tone */}
                 <div className="space-y-3">
-                    <label className="text-xs font-bold uppercase tracking-wider text-text-muted">Step 4: Voice & Tone</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-text-muted">Step 5: Voice & Tone</label>
                     <div className="bg-surface border border-border rounded-lg p-4">
                         <div className="flex justify-between text-[10px] font-bold text-text-muted mb-2">
                             <span>CASUAL</span>
@@ -120,9 +150,9 @@ export default function ScriptConfig({ config, setConfig, onGenerate, isGenerati
                     </div>
                 </div>
 
-                {/* Step 5: Duration */}
+                {/* Step 6: Duration */}
                 <div className="space-y-3">
-                    <label className="text-xs font-bold uppercase tracking-wider text-text-muted">Step 5: Duration</label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-text-muted">Step 6: Duration</label>
                     <div className="grid grid-cols-3 gap-2">
                         {[
                             { id: '30s', label: 'Short', desc: '~30s' },

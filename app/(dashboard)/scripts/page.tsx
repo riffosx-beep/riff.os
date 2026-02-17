@@ -11,6 +11,7 @@ export default function ScriptsPage() {
         topic: '',
         platform: 'twitter',
         framework: 'hormozi',
+        contentType: 'short_form',
         tone: 50,
         duration: '60s',
         styles: [] as string[],
@@ -36,6 +37,7 @@ export default function ScriptsPage() {
                     platform: config.platform,
                     tone: config.tone > 75 ? 'provocative' : config.tone > 40 ? 'casual' : 'professional',
                     framework: config.framework,
+                    contentType: config.contentType,
                     length: config.duration // Use selected duration
                 })
             })
@@ -97,6 +99,37 @@ export default function ScriptsPage() {
         }
     }
 
+    const handleRefine = async (feedback: string) => {
+        if (!scriptData || !feedback) return
+        setIsGenerating(true)
+        try {
+            const res = await fetch('/api/ai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'refine-script',
+                    script: scriptData.content,
+                    feedback,
+                    platform: config.platform,
+                    contentType: config.contentType
+                })
+            })
+            const data = await res.json()
+            if (data.error) throw new Error(data.error)
+
+            setScriptData({
+                ...scriptData,
+                content: data.refined.refined_script,
+                score: data.refined.viral_score || scriptData.score
+            })
+        } catch (err) {
+            console.error(err)
+            alert('Failed to refine script')
+        } finally {
+            setIsGenerating(false)
+        }
+    }
+
     return (
         <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-6 lg:gap-0 bg-surface border border-border rounded-xl overflow-hidden shadow-2xl relative">
             {/* Left Panel: Configuration */}
@@ -143,6 +176,8 @@ export default function ScriptsPage() {
                     <ScriptEditor
                         scriptData={scriptData}
                         onRegenerate={handleGenerate}
+                        onRefine={handleRefine}
+                        isGenerating={isGenerating}
                     />
                 </div>
             </div>

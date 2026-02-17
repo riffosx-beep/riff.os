@@ -174,22 +174,6 @@ export default function ExpandedIdea({ idea, onClose, onUpdate }: ExpandedIdeaPr
                         >
                             <Zap size={16} /> Hook Ideas
                         </button>
-                        <div className="h-px bg-border my-4" />
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-3 mb-2">Actions</p>
-                        <button
-                            onClick={handlePromoteToScript}
-                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-hover transition-colors"
-                        >
-                            {isProcessing === 'script' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                            Draft Script
-                        </button>
-                        <button
-                            onClick={handleSchedule}
-                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-hover transition-colors"
-                        >
-                            {isProcessing === 'calendar' ? <Loader2 size={16} className="animate-spin" /> : <Calendar size={16} />}
-                            Add to Planner
-                        </button>
                     </div>
 
                     {/* Editor / Content */}
@@ -229,11 +213,6 @@ export default function ExpandedIdea({ idea, onClose, onUpdate }: ExpandedIdeaPr
                     </div>
                 </div>
 
-                {/* Footer Actions (Mobile) */}
-                <div className="p-4 border-t border-border flex items-center justify-end gap-3 md:hidden">
-                    <button onClick={handlePromoteToScript} className="btn-secondary text-xs">Script</button>
-                    <button onClick={handleSchedule} className="btn-primary text-xs">Schedule</button>
-                </div>
             </motion.div>
         </motion.div>
     )

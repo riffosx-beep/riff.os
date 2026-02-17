@@ -204,6 +204,7 @@ CRITICAL RULES:
           platform,
           tone = 'professional',
           length = '60s',
+          contentType = 'short_form',
           includeHumor = false,
           includeData = true,
           includeStorytelling = true,
@@ -213,11 +214,16 @@ CRITICAL RULES:
         } = params
 
         const lengthGuide: Record<string, string> = {
-          '15s': '30-50 words. Hook → one killer insight → CTA. No fluff.',
-          '30s': '60-90 words. Hook → setup → one key point → CTA.',
-          '60s': '120-180 words. Hook → open loop → 2-3 points → authority → CTA.',
-          '3min': '400-500 words. Hook → open loop → deep value (3-5 points with examples) → story element → authority → CTA.',
-          '10min': '1200-1500 words. Full educational breakdown with stories, data, frameworks, and multiple CTAs.',
+          '30s': '60-90 words. Hook → transition → one primary value bomb → punchy CTA.',
+          '60s': '120-180 words. Hook → open loop → value-added body (2-3 points) → authority/social proof → direct CTA.',
+          '120s': '300-400 words. Hook → open loop → context → deep value breakdown → mini-story → objection handling → multilayered CTA.',
+        }
+
+        const typeGuide: Record<string, string> = {
+          short_form: 'Optimized for high retention. Fast pacing, pattern interrupts every 3-5 seconds, punchy delivery.',
+          educational: 'Step-by-step breakdown. Authority-led, high "saveable" value, clear logical flow.',
+          storytelling: 'Narrative-driven. Starts with a moment of high tension, follows a classic story arc, emotional connection.',
+          controversial: 'Pattern interrupt led. High polarization, challenges conventional wisdom, spicy takes.',
         }
 
         const toneGuide: Record<string, string> = {
@@ -228,18 +234,17 @@ CRITICAL RULES:
           educational: 'Teacher mode. Clear, structured, step-by-step. Like a masterclass — authoritative but accessible.',
         }
 
-        const systemPrompt = `You are a viral content scriptwriter who has written 2,000+ scripts generating 500M+ views for coaches, consultants, and founder-led brands. You understand attention psychology at a neuroscience level.
+        const systemPrompt = `You are a viral content scriptwriter who has written 2,000+ scripts generating 500M+ views. You understand attention psychology at a neuroscience level.
 
 Platform: ${platform}
+Content Type: ${contentType} — ${typeGuide[contentType] || typeGuide['short_form']}
 Target length: ${length} (${lengthGuide[length] || lengthGuide['60s']})
 Tone: ${tone} — ${toneGuide[tone] || toneGuide['professional']}
 Target audience: ${targetAudience}
 ${framework ? `Use this content framework: ${framework}` : ''}
-${offer ? `User's offer (weave naturally into CTA): ${offer}` : ''}
-${includeHumor ? 'Include strategic humor — self-deprecating or observational, NOT corny jokes.' : 'Keep it serious — no humor.'}
-${includeData ? 'Include 1-2 specific data points or statistics (real or realistic).' : 'No stats — pure insight and experience.'}
-${includeStorytelling ? 'Weave in a micro-story or personal anecdote.' : 'Skip stories — pure tactical value.'}
 ${voiceContext}
+
+CRITICAL: Generate a COMPLETE script from A to Z. Do not just generic sentences. Every word must be part of the final spoken/written output.
 
 Return a JSON object:
 {
@@ -247,43 +252,20 @@ Return a JSON object:
   "hooks": [
     {
       "style": "pattern_interrupt",
-      "text": "Hook variation 1 — a bold pattern interrupt that makes them stop scrolling",
-      "why": "Why this hook works psychologically"
+      "text": "Hook variation 1 — bold and stopping",
+      "why": "Why it stops the thumb"
     },
-    {
-      "style": "curiosity_gap",
-      "text": "Hook variation 2 — creates an unresolved question",
-      "why": "Why this hook works"
-    },
-    {
-      "style": "contrarian",
-      "text": "Hook variation 3 — challenges conventional wisdom",
-      "why": "Why this hook works"
-    }
+    { "style": "curiosity", "text": "Hook 2", "why": "" },
+    { "style": "contrarian", "text": "Hook 3", "why": "" }
   ],
-  "open_loop": "Next 5-10 seconds. Create tension that makes the viewer NEED to keep watching.",
-  "body": "Core value section. ${lengthGuide[length] || ''} Use short punchy sentences. One idea per line.",
-  "authority": "Establish credibility naturally — show results, don't brag.",
-  "cta": "Tell them EXACTLY what to do. Be specific.",
-  "full_script": "The COMPLETE script written as you would speak it. Include [PAUSE] markers, [EMPHASIS] markers, and [B-ROLL: description] suggestions. Ready to read into a camera.",
-  "b_roll_suggestions": [
-    "Specific B-roll shot 1 with description",
-    "Specific B-roll shot 2",
-    "Specific B-roll shot 3"
-  ],
-  "platform_variants": {
-    "instagram_reels": "Adapted opening line for IG Reels format",
-    "youtube_shorts": "Adapted for YouTube Shorts (can be slightly longer)",
-    "tiktok": "Adapted for TikTok (more casual, trend-aware)",
-    "linkedin": "Adapted for LinkedIn (text post version, more professional)"
-  },
+  "full_script": "The COMPLETE script written as speech. Include [PAUSE] and [EMPHASIS] markers. Start with the hook, followed by the transition, value-adding body, and ending with a strong CTA. This is the main content the user will use.",
+  "viral_score": 85,
   "estimated_duration": "${length}",
-  "word_count": 150,
-  "caption_suggestion": "Suggested social media caption to pair with this video",
-  "hashtag_suggestions": ["3-5 strategic hashtags"]
+  "cta": "The specific call to action used in the script",
+  "caption_suggestion": "Social media description"
 }`
 
-        const userPrompt = `Create a ${length} ${platform} script about: "${hook}". Tone: ${tone}. Make it so good that the viewer forgets they're being marketed to. Every line must earn its place — if it doesn't add value, create tension, or drive toward conversion, cut it.`
+        const userPrompt = `Create a ${length} ${contentType} ${platform} script about: "${hook}". Tone: ${tone}. Generate a FULL, complete script ready for recording/posting.`
 
         const result = await generateAIResponse(systemPrompt, userPrompt)
         let script = safeParseJSON(result)
@@ -295,13 +277,43 @@ Return a JSON object:
           user_id: user.id,
           title: script.title || hook.substring(0, 100),
           hook: typeof script.hooks === 'object' ? script.hooks[0]?.text : script.hook,
-          body: script.full_script || script.body,
+          content: script.full_script || script.body, // Use 'content' to match schema
           cta: script.cta,
           platform,
+          status: 'draft',
+          settings: { ...params, contentType, length, tone }
         })
         if (insertError) console.error('Insert error:', insertError)
 
         return NextResponse.json({ script })
+      }
+
+      case 'refine-script': {
+        const { script, feedback, platform, contentType } = params
+        const systemPrompt = `You are an elite script editor. Your goal is to take an existing script and REFINE it based on user feedback.
+
+Original Script:
+${script}
+
+Platform: ${platform}
+Content Type: ${contentType}
+
+Return JSON with the modified script:
+{
+  "refined_script": "The full updated script",
+  "changes_made": "Brief summary of what was changed",
+  "viral_score": 88
+}
+
+${voiceContext}`
+
+        const userPrompt = `Refine the script based on this feedback: "${feedback}". Ensure the tone stays consistent with the platform and type. Return the full modified script.`
+
+        const result = await generateAIResponse(systemPrompt, userPrompt)
+        const refined = safeParseJSON(result)
+        if (!refined) return NextResponse.json({ error: 'Failed to refine script' }, { status: 500 })
+
+        return NextResponse.json({ refined })
       }
 
       // ═══════════════════════════════════════════════════════

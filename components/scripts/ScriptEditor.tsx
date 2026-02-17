@@ -2,17 +2,27 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Copy, RefreshCw, Zap, TrendingUp, AlertTriangle, Check, Sliders } from 'lucide-react'
+import { Copy, RefreshCw, Zap, TrendingUp, AlertTriangle, Check, Sliders, Loader2, Sparkles } from 'lucide-react'
 
 interface ScriptEditorProps {
     scriptData: any
     onRegenerate: () => void
+    onRefine: (feedback: string) => void
+    isGenerating: boolean
 }
 
-export default function ScriptEditor({ scriptData, onRegenerate }: ScriptEditorProps) {
+export default function ScriptEditor({ scriptData, onRegenerate, onRefine, isGenerating }: ScriptEditorProps) {
     const [selectedHook, setSelectedHook] = useState(0)
     const [activeTab, setActiveTab] = useState<'editor' | 'optimizer'>('editor')
     const [scriptContent, setScriptContent] = useState(scriptData?.content || '')
+    const [refinePrompt, setRefinePrompt] = useState('')
+
+    // Update internal content when props change
+    React.useEffect(() => {
+        if (scriptData?.content) {
+            setScriptContent(scriptData.content)
+        }
+    }, [scriptData?.content])
 
     if (!scriptData) {
         return (
@@ -70,8 +80,8 @@ export default function ScriptEditor({ scriptData, onRegenerate }: ScriptEditorP
                     </button>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={onRegenerate} className="p-2 text-text-muted hover:text-text-primary transition-colors" title="Regenerate">
-                        <RefreshCw size={16} />
+                    <button onClick={onRegenerate} disabled={isGenerating} className="p-2 text-text-muted hover:text-text-primary transition-colors" title="Regenerate">
+                        <RefreshCw size={16} className={`${isGenerating ? 'animate-spin' : ''}`} />
                     </button>
                     <button onClick={() => handleExport('txt')} className="btn-secondary text-xs h-8">
                         Export .TXT
@@ -84,7 +94,7 @@ export default function ScriptEditor({ scriptData, onRegenerate }: ScriptEditorP
                     <div className="space-y-6 animate-enter">
                         {/* Hooks Selection */}
                         <div className="space-y-3">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">Choose a Hook</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">Step 1: Choose Your Hook</h3>
                             <div className="grid gap-3">
                                 {scriptData.hooks.map((hook: string, i: number) => (
                                     <div
@@ -110,16 +120,53 @@ export default function ScriptEditor({ scriptData, onRegenerate }: ScriptEditorP
                         {/* Full Script */}
                         <div className="space-y-3">
                             <div className="flex justify-between items-end">
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">Full Content</h3>
-                                <button className="text-xs text-accent hover:underline flex items-center gap-1">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">Step 2: Script Content</h3>
+                                <button onClick={() => handleExport('copy')} className="text-xs text-accent hover:underline flex items-center gap-1">
                                     <Copy size={12} /> Copy
                                 </button>
                             </div>
-                            <textarea
-                                value={scriptContent}
-                                onChange={e => setScriptContent(e.target.value)}
-                                className="w-full h-96 bg-surface border border-border rounded-xl p-6 text-base leading-relaxed resize-none outline-none focus:border-accent transition-colors font-mono text-sm"
-                            />
+                            <div className="relative group">
+                                <textarea
+                                    value={scriptContent}
+                                    onChange={e => setScriptContent(e.target.value)}
+                                    className="w-full h-96 bg-surface border border-border rounded-xl p-6 text-base leading-relaxed resize-none outline-none focus:border-accent transition-colors font-mono text-sm shadow-inner"
+                                />
+                                {isGenerating && (
+                                    <div className="absolute inset-0 bg-surface/50 backdrop-blur-[2px] rounded-xl flex items-center justify-center">
+                                        <Loader2 className="animate-spin text-accent" size={32} />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* AI Refinement */}
+                        <div className="bg-surface border border-border rounded-xl p-5 space-y-4 shadow-sm">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Sparkles size={16} className="text-accent" />
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">Step 3: Refine with AI</h3>
+                            </div>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={refinePrompt}
+                                    onChange={e => setRefinePrompt(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && onRefine(refinePrompt)}
+                                    placeholder="e.g. 'Make it more punchy' or 'Change the CTA to join my newsletter'..."
+                                    className="flex-1 bg-surface-2 border border-border rounded-lg px-4 py-2 text-sm outline-none focus:border-accent"
+                                />
+                                <button
+                                    onClick={() => {
+                                        onRefine(refinePrompt)
+                                        setRefinePrompt('')
+                                    }}
+                                    disabled={!refinePrompt || isGenerating}
+                                    className="btn-primary py-2 px-4 text-xs flex items-center gap-2 shadow-lg shadow-accent/10"
+                                >
+                                    {isGenerating ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} />}
+                                    Refine
+                                </button>
+                            </div>
+                            <p className="text-[10px] text-text-muted italic">Pro tip: You can ask the AI to change the tone, shorten the body, or add specific details.</p>
                         </div>
 
                         {/* Viral Score */}
@@ -133,7 +180,7 @@ export default function ScriptEditor({ scriptData, onRegenerate }: ScriptEditorP
                             </div>
                             <div className="w-full h-2 bg-surface-2 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-gradient-to-r from-yellow-500 to-green-500"
+                                    className="h-full bg-gradient-to-r from-yellow-500 to-green-500 transition-all duration-1000"
                                     style={{ width: `${scriptData.score}%` }}
                                 />
                             </div>
@@ -151,6 +198,7 @@ export default function ScriptEditor({ scriptData, onRegenerate }: ScriptEditorP
                         </div>
                     </div>
                 ) : (
+                    // ... (rest of the file)
                     // OPTIMIZER TAB
                     <div className="space-y-6 animate-enter">
                         <div className="bg-surface border border-border rounded-xl p-6 text-center space-y-4">
