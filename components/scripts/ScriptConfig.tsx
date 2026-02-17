@@ -153,18 +153,19 @@ export default function ScriptConfig({ config, setConfig, onGenerate, isGenerati
                 {/* Step 6: Duration */}
                 <div className="space-y-3">
                     <label className="text-xs font-bold uppercase tracking-wider text-text-muted">Step 6: Duration</label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-4 gap-2">
                         {[
-                            { id: '30s', label: 'Short', desc: '~30s' },
-                            { id: '60s', label: 'Medium', desc: '~60s' },
-                            { id: '120s', label: 'Long', desc: '120s+' },
+                            { id: '30s', label: 'Short', desc: '30s' },
+                            { id: '60s', label: 'Medium', desc: '60s' },
+                            { id: '120s', label: 'Long', desc: '2m' },
+                            { id: '10min', label: 'Deep', desc: '10m+' },
                         ].map(d => (
                             <button
                                 key={d.id}
                                 onClick={() => update('duration', d.id)}
                                 className={`p-2 rounded-lg border flex flex-col items-center transition-all ${config.duration === d.id
-                                    ? 'bg-accent/10 border-accent text-accent'
-                                    : 'bg-surface border-border text-text-secondary'
+                                    ? 'bg-accent/10 border-accent text-accent shadow-[0_0_10px_rgba(124,58,237,0.2)]'
+                                    : 'bg-surface border-border text-text-secondary hover:border-text-muted'
                                     }`}
                             >
                                 <span className="text-[10px] font-bold">{d.label}</span>

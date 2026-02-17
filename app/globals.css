@@ -21,82 +21,85 @@
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-subtle: var(--accent-subtle);
-  --color-success: #34D399;
+  --color-success: #10B981;
   --color-success-bg: var(--success-bg);
-  --color-warning: #FBBF24;
+  --color-warning: #F59E0B;
   --color-warning-bg: var(--warning-bg);
-  --color-danger: #F87171;
+  --color-danger: #EF4444;
   --color-danger-bg: var(--danger-bg);
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
 }
 
 /* ════════════════════════════════════════════
-   LIGHT MODE
-   ════════════════════════════════════════════ */
-/* ════════════════════════════════════════════
-   LIGHT MODE
+   LIGHT MODE (Refined Violet)
    ════════════════════════════════════════════ */
 :root {
-  --bg: #FAFAFA;
+  --bg: #FDFBFF;
   --surface: #FFFFFF;
-  --surface-2: #F4F4F5;
-  --surface-hover: #E4E4E7;
-  --surface-active: #D4D4D8;
-  --border: #E4E4E7;
-  --border-light: #D4D4D8;
-  --border-focus: #18181B;
-  --text-primary: #18181B;
-  --text-secondary: #52525B;
-  --text-muted: #A1A1AA;
-  --text-inverse: #FAFAFA;
-  --accent: #18181B;
-  --accent-hover: #27272A;
-  --accent-subtle: rgba(24, 24, 27, 0.05);
+  --surface-2: #F8F5FC;
+  --surface-hover: #F1EBF9;
+  --surface-active: #E9DFF5;
+  --border: #E5E0EB;
+  --border-light: #DCD4E6;
+  --border-focus: #7C3AED;
+  --text-primary: #1E1B24;
+  --text-secondary: #5D5A66;
+  --text-muted: #9E9AA6;
+  --text-inverse: #FFFFFF;
+  --accent: #7C3AED;
+  /* Violet-600 */
+  --accent-hover: #6D28D9;
+  --accent-subtle: rgba(124, 58, 237, 0.08);
   --success-bg: #ECFDF5;
   --warning-bg: #FFFBEB;
   --danger-bg: #FEF2F2;
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --glass-border: rgba(0, 0, 0, 0.1);
+  --shadow-xs: 0 1px 2px rgba(124, 58, 237, 0.05);
+  --shadow-sm: 0 1px 3px rgba(124, 58, 237, 0.1), 0 1px 2px rgba(124, 58, 237, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(124, 58, 237, 0.1), 0 2px 4px -1px rgba(124, 58, 237, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(124, 58, 237, 0.1), 0 4px 6px -2px rgba(124, 58, 237, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.4);
   --glass-bg: rgba(255, 255, 255, 0.7);
+  --glow-primary: 0 0 20px rgba(124, 58, 237, 0.3);
 }
 
 /* ════════════════════════════════════════════
-   DARK MODE — Primary (Tech/Cyber)
+   DARK MODE — PREMIUM VIOLET (Cyber/SaaS)
    ════════════════════════════════════════════ */
 [data-theme='dark'] {
-  --bg: #050505;
-  /* Pitch black foundation */
-  --surface: #0A0A0A;
-  --surface-2: #121212;
-  --surface-hover: #1A1A1A;
-  /* Subtle lift */
-  --surface-active: #262626;
-  --border: #1F1F1F;
-  /* Very subtle borders */
-  --border-light: #2A2A2A;
-  --border-focus: #FAFAFA;
-  --text-primary: #EDEDED;
-  /* Off-white for less eye strain */
-  --text-secondary: #A1A1AA;
-  --text-muted: #52525B;
+  --bg: #050408;
+  /* Deepest violet-black */
+  --surface: #0E0C14;
+  /* Dark rich violet surface */
+  --surface-2: #16131F;
+  /* Slightly lighter */
+  --surface-hover: #221D2E;
+  --surface-active: #2D273D;
+  --border: #2A2436;
+  /* Subtle violet border */
+  --border-light: #383147;
+  --border-focus: #8B5CF6;
+  /* Violet-500 */
+  --text-primary: #F3F1F7;
+  /* Off-white w/ violet hint */
+  --text-secondary: #A39EB0;
+  --text-muted: #625E6E;
   --text-inverse: #000000;
-  --accent: #FAFAFA;
-  --accent-hover: #E5E5E5;
-  --accent-subtle: rgba(255, 255, 255, 0.08);
-  /* More visible subtle state */
-  --success-bg: rgba(16, 185, 129, 0.1);
-  --warning-bg: rgba(245, 158, 11, 0.1);
-  --danger-bg: rgba(239, 68, 68, 0.1);
-  --shadow-xs: 0 0 0 1px rgba(255, 255, 255, 0.05);
-  --shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 4px 8px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 12px 24px rgba(0, 0, 0, 0.6);
+  --accent: #8B5CF6;
+  /* Violet-500 */
+  --accent-hover: #A78BFA;
+  /* Violet-400 */
+  --accent-subtle: rgba(139, 92, 246, 0.15);
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --danger-bg: rgba(239, 68, 68, 0.15);
+  --shadow-xs: 0 0 0 1px rgba(139, 92, 246, 0.1);
+  --shadow-sm: 0 0 0 1px rgba(139, 92, 246, 0.1), 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 0 0 1px rgba(139, 92, 246, 0.1), 0 4px 8px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 0 0 1px rgba(139, 92, 246, 0.1), 0 12px 24px rgba(0, 0, 0, 0.6), 0 0 40px rgba(139, 92, 246, 0.1);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-bg: rgba(10, 10, 10, 0.7);
+  --glass-bg: rgba(14, 12, 20, 0.6);
+  --glow-primary: 0 0 30px rgba(139, 92, 246, 0.25);
 }
 
 /* ════════════════════════════════════════════
@@ -115,10 +118,14 @@ body {
   line-height: 1.5;
   overflow-x: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 80% 10%, rgba(236, 72, 153, 0.08) 0%, transparent 30%);
+  background-attachment: fixed;
 }
 
 ::selection {
-  background: #A855F7;
+  background: var(--accent);
   color: white;
 }
 
@@ -126,11 +133,12 @@ body {
   outline: 2px solid var(--border-focus);
   outline-offset: 2px;
   border-radius: 6px;
+  box-shadow: 0 0 0 4px var(--accent-subtle);
 }
 
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -138,12 +146,16 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--border-light);
   border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
+  border: 1px solid transparent;
+  background-clip: content-box;
 }
 
 /* ════════════════════════════════════════════

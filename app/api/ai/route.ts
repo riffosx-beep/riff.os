@@ -217,6 +217,7 @@ CRITICAL RULES:
           '30s': '60-90 words. Hook → transition → one primary value bomb → punchy CTA.',
           '60s': '120-180 words. Hook → open loop → value-added body (2-3 points) → authority/social proof → direct CTA.',
           '120s': '300-400 words. Hook → open loop → context → deep value breakdown → mini-story → objection handling → multilayered CTA.',
+          '10min': '1500-2000 words. COMPLETE YouTube Video Structure. Intro (Hook+Qualified Promise) → Titles Sequence → Context/Problem → The Mechanism (Core Concept) → Step-by-Step Breakdown (3-5 Steps) → Common Mistakes → Case Study/Example → Conclusion → CTA.',
         }
 
         const typeGuide: Record<string, string> = {
@@ -245,6 +246,7 @@ ${framework ? `Use this content framework: ${framework}` : ''}
 ${voiceContext}
 
 CRITICAL: Generate a COMPLETE script from A to Z. Do not just generic sentences. Every word must be part of the final spoken/written output.
+For '10min' videos, you MUST write a long-form, deep-dive script (1500+ words).
 
 Return a JSON object:
 {
@@ -258,18 +260,26 @@ Return a JSON object:
     { "style": "curiosity", "text": "Hook 2", "why": "" },
     { "style": "contrarian", "text": "Hook 3", "why": "" }
   ],
-  "full_script": "The COMPLETE script written as speech. Include [PAUSE] and [EMPHASIS] markers. Start with the hook, followed by the transition, value-adding body, and ending with a strong CTA. This is the main content the user will use.",
+  "full_script": "The COMPLETE script. If 10min, this must be VERY LONG and detailed. Include [PAUSE], [B-ROLL], [TEXT-OVERLAY] markers.",
   "viral_score": 85,
   "estimated_duration": "${length}",
   "cta": "The specific call to action used in the script",
   "caption_suggestion": "Social media description"
 }`
 
-        const userPrompt = `Create a ${length} ${contentType} ${platform} script about: "${hook}". Tone: ${tone}. Generate a FULL, complete script ready for recording/posting.`
+        const userPrompt = `Create a ${length} ${contentType} ${platform} script about: "${hook}". Tone: ${tone}. Generate a FULL, complete script ready for recording/posting. ${length === '10min' ? 'Make it a comprehensive deep dive.' : ''}`
 
         const result = await generateAIResponse(systemPrompt, userPrompt)
         let script = safeParseJSON(result)
-        if (!script) return NextResponse.json({ error: 'Failed to parse script' }, { status: 500 })
+
+        // Fallback parsing if safeParseJSON fails or returns null
+        if (!script) {
+          // Attempt to clean markdown code blocks if present
+          const cleanResult = result.replace(/```json/g, '').replace(/```/g, '')
+          script = safeParseJSON(cleanResult)
+        }
+
+        if (!script) return NextResponse.json({ error: 'Failed to parse script. Raw AI output.' }, { status: 500 })
         if (script.script) script = script.script
 
         // Save
