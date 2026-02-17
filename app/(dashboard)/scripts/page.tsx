@@ -75,29 +75,23 @@ export default function ScriptsPage() {
             const { error } = await supabase.from('scripts').insert({
                 user_id: user.id,
                 title: config.topic,
-                content: scriptData.content, // This might need to be the edited content from child, but for MVP we save generated
+                content: scriptData.content,
                 platform: config.platform,
                 status: 'draft',
-                hooks: scriptData.hooks, // Ensure DB has this column or store in JSONB
-                settings: config
+                framework: config.framework,
+                hooks: scriptData.hooks, // JSONB
+                settings: config // JSONB
             })
 
             if (error) {
-                // Fallback if schema doesn't match
-                await supabase.from('vault').insert({
-                    user_id: user.id,
-                    title: config.topic,
-                    content: scriptData.content,
-                    type: 'script',
-                    status: 'draft',
-                    platform: config.platform,
-                    ai_notes: JSON.stringify(scriptData.hooks)
-                })
+                console.error('Script save error:', error)
+                throw error
             }
 
             setLastSaved(new Date())
         } catch (err) {
             console.error('Save failed', err)
+            alert('Failed to save script')
         } finally {
             setIsSaving(false)
         }

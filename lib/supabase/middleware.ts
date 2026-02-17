@@ -6,62 +6,81 @@ export async function updateSession(request: NextRequest) {
         request,
     })
 
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-            cookies: {
-                getAll() {
-                    return request.cookies.getAll()
-                },
-                setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) =>
-                        request.cookies.set(name, value)
-                    )
-                    supabaseResponse = NextResponse.next({
-                        request,
-                    })
-                    cookiesToSet.forEach(({ name, value, options }) =>
-                        supabaseResponse.cookies.set(name, value, options)
-                    )
-                },
-            },
+    try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+        // Fallback if env vars are missing to avoid 500 error
+        if (!supabaseUrl || !supabaseKey) {
+            console.error('Middleware: Missing Supabase environment variables')
+            return supabaseResponse
         }
-    )
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+        const supabase = createServerClient(
+            supabaseUrl,
+            supabaseKey,
+            {
+                cookies: {
+                    getAll() {
+                        return request.cookies.getAll()
+                    },
+                    setAll(cookiesToSet) {
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            request.cookies.set(name, value)
+                        )
+                        supabaseResponse = NextResponse.next({
+                            request,
+                        })
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            supabaseResponse.cookies.set(name, value, options)
+                        )
+                    },
+                },
+            }
+        )
 
-    const isAuthPage = request.nextUrl.pathname === '/login'
-    const isCallbackPage = request.nextUrl.pathname === '/auth/callback'
-    const isPublicPage = request.nextUrl.pathname === '/'
+        const {
+            data: { user },
+        } = await supabase.auth.getUser()
 
-    // Allow auth callback through
-    if (isCallbackPage) {
+        const isAuthPage = request.nextUrl.pathname === '/login'
+        const isCallbackPage = request.nextUrl.pathname === '/auth/callback'
+        const isPublicPage = request.nextUrl.pathname === '/'
+
+        // Allow auth callback through
+        if (isCallbackPage) {
+            return supabaseResponse
+        }
+
+        // If not logged in and trying to access protected route (anything not auth, not public, not api)
+        if (!user && !isAuthPage && !isPublicPage && !request.nextUrl.pathname.startsWith('/api')) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/login'
+            return NextResponse.redirect(url)
+        }
+
+        // If logged in and on login page, redirect to dashboard
+        if (user && isAuthPage) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/dashboard'
+            return NextResponse.redirect(url)
+        }
+
+        // If logged in and on root, redirect to dashboard
+        if (user && isPublicPage) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/dashboard'
+            return NextResponse.redirect(url)
+        }
+
         return supabaseResponse
+    } catch (e) {
+        // IMPORTANT: If middleware fails, we return the original response to avoid blocking the app with a 500
+        console.error('Middleware error:', e)
+        return NextResponse.next({
+            request: {
+                headers: request.headers,
+            },
+        })
     }
-
-    // If not logged in and trying to access protected route
-    if (!user && !isAuthPage && !isPublicPage) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/login'
-        return NextResponse.redirect(url)
-    }
-
-    // If logged in and on login page, redirect to dashboard
-    if (user && isAuthPage) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/dashboard'
-        return NextResponse.redirect(url)
-    }
-
-    // If logged in and on root, redirect to dashboard
-    if (user && isPublicPage) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/dashboard'
-        return NextResponse.redirect(url)
-    }
-
-    return supabaseResponse
 }

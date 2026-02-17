@@ -33,7 +33,7 @@ export default function IdeasPage() {
     // Capture State
     const [isCaptureOpen, setIsCaptureOpen] = useState(false)
     const [isFilterOpen, setIsFilterOpen] = useState(false)
-    const [activeFilter, setActiveFilter] = useState<'all' | 'voice' | 'text' | 'web'>('all')
+    const [activeFilter, setActiveFilter] = useState<'all' | 'voice' | 'text' | 'web' | 'ai'>('all')
     const [selectedIdea, setSelectedIdea] = useState<any | null>(null)
 
     // Generator State

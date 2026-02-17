@@ -3,17 +3,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { v4 as uuidv4 } from 'uuid'
+import { Database } from '@/lib/types'
 
-// Define the shape of an Idea
+// Define the shape of an Idea based on Vault
 export interface Idea {
     id: string
     title: string
     content: string
     tags: string[]
-    source: 'voice' | 'text' | 'web'
+    source: 'voice' | 'text' | 'web' | 'ai'
     is_favorite: boolean
     created_at: string
     user_id?: string
+    type?: string
 }
 
 export function useIdeas() {
@@ -22,7 +24,7 @@ export function useIdeas() {
     const [error, setError] = useState<string | null>(null)
     const supabase = createClient()
 
-    // Fetch ideas from Supabase
+    // Fetch ideas from Vault
     const fetchIdeas = useCallback(async () => {
         try {
             setLoading(true)
@@ -34,14 +36,28 @@ export function useIdeas() {
             }
 
             const { data, error } = await supabase
-                .from('ideas')
+                .from('vault')
                 .select('*')
+                .eq('type', 'idea') // Filter strictly for ideas
+                .neq('status', 'trash') // Don't show trashed items
                 .order('created_at', { ascending: false })
 
             if (error) throw error
 
             if (data) {
-                setIdeas(data as Idea[])
+                // Map vault data to Idea interface
+                const mappedIdeas: Idea[] = data.map(item => ({
+                    id: item.id,
+                    title: item.title,
+                    content: item.content || '',
+                    tags: item.tags || [],
+                    source: (item.source as any) || 'text',
+                    is_favorite: item.is_favorite || false,
+                    created_at: item.created_at,
+                    user_id: item.user_id,
+                    type: item.type
+                }))
+                setIdeas(mappedIdeas)
             }
         } catch (err: any) {
             console.error('Error fetching ideas:', err)
@@ -56,7 +72,7 @@ export function useIdeas() {
         title: string,
         content: string,
         tags: string[],
-        source: 'voice' | 'text' | 'web'
+        source: 'voice' | 'text' | 'web' | 'ai'
     ) => {
         try {
             const { data: { user } } = await supabase.auth.getUser()
@@ -69,6 +85,8 @@ export function useIdeas() {
                 content,
                 tags,
                 source,
+                type: 'idea',
+                status: 'active',
                 is_favorite: false
             }
 
@@ -83,7 +101,7 @@ export function useIdeas() {
             setIdeas(prev => [optimisticIdea, ...prev])
 
             const { data, error } = await supabase
-                .from('ideas')
+                .from('vault')
                 .insert(newIdea)
                 .select()
                 .single()
@@ -92,7 +110,18 @@ export function useIdeas() {
 
             // Replace optimistic idea with real data
             if (data) {
-                setIdeas(prev => prev.map(i => i.id === tempId ? (data as Idea) : i))
+                const realIdea: Idea = {
+                    id: data.id,
+                    title: data.title,
+                    content: data.content || '',
+                    tags: data.tags || [],
+                    source: (data.source as any) || 'text',
+                    is_favorite: data.is_favorite || false,
+                    created_at: data.created_at,
+                    user_id: data.user_id,
+                    type: data.type
+                }
+                setIdeas(prev => prev.map(i => i.id === tempId ? realIdea : i))
             }
 
             return data
@@ -113,7 +142,7 @@ export function useIdeas() {
             ))
 
             const { error } = await supabase
-                .from('ideas')
+                .from('vault')
                 .update({ is_favorite: !currentStatus })
                 .eq('id', id)
 
@@ -127,15 +156,16 @@ export function useIdeas() {
         }
     }
 
-    // Delete idea
+    // Delete idea (actually move to trash)
     const deleteIdea = async (id: string) => {
         try {
             // Optimistic update
             setIdeas(prev => prev.filter(i => i.id !== id))
 
+            // Soft delete
             const { error } = await supabase
-                .from('ideas')
-                .delete()
+                .from('vault')
+                .update({ status: 'trash' })
                 .eq('id', id)
 
             if (error) throw error

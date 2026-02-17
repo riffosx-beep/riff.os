@@ -19,18 +19,17 @@ import {
     Target,
     ChevronDown,
     Save,
+    Edit2, // Added Edit icon
+    Paperclip
 } from 'lucide-react'
+import { Database } from '@/lib/types'
+import AssetManager from '@/components/AssetManager' // Import AssetManager
 
-interface CalendarEntry {
-    id?: string
-    date: string
-    title: string
-    platform: string
-    content_type: string
-    status: string
-    notes?: string
-    time_slot?: string
-    user_id?: string
+type CalendarRow = Database['public']['Tables']['calendar']['Row']
+type VaultRow = Database['public']['Tables']['vault']['Row']
+
+interface CalendarEntry extends Omit<CalendarRow, 'created_at' | 'updated_at'> {
+    // UI specific optional fields if any, but mostly strict database mapping
 }
 
 const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate()
@@ -67,10 +66,11 @@ export default function CalendarPage() {
         cta: ''
     })
 
+    const supabase = createClient()
+
     useEffect(() => {
         // Fetch strategy for this month
         const fetchStrategy = async () => {
-            const supabase = createClient()
             const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
             const { data } = await supabase.from('vault')
                 .select('*')
@@ -78,7 +78,7 @@ export default function CalendarPage() {
                 .ilike('title', `%${monthStr}%`)
                 .maybeSingle()
 
-            if (data) {
+            if (data && data.content) {
                 try {
                     const parsed = JSON.parse(data.content)
                     setStrategy(parsed)
@@ -93,7 +93,6 @@ export default function CalendarPage() {
     const saveStrategy = async () => {
         setSavingStrategy(true)
         try {
-            const supabase = createClient()
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) return
 
@@ -145,21 +144,36 @@ export default function CalendarPage() {
     }, [currentMonth, currentYear])
 
     async function fetchEntries() {
-        const supabase = createClient()
         const startDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`
         const endDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${getDaysInMonth(currentYear, currentMonth)}`
         const { data } = await supabase.from('calendar').select('*').gte('date', startDate).lte('date', endDate).order('date')
-        if (data) setEntries(data)
+        if (data) setEntries(data as CalendarEntry[])
     }
 
     async function saveEntry() {
         if (!newEntry.title?.trim() || !selectedDate) return
         setSaving(true)
         try {
-            const supabase = createClient()
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) throw new Error('Not logged in')
-            await supabase.from('calendar').insert({ ...newEntry, date: selectedDate, user_id: user.id })
+
+            const entryToSave = {
+                ...newEntry,
+                date: selectedDate,
+                user_id: user.id,
+                platform: newEntry.platform || 'LinkedIn',
+                content_type: newEntry.content_type || 'text',
+                title: newEntry.title
+            }
+
+            if (newEntry.id) {
+                // Update
+                await supabase.from('calendar').update(entryToSave as any).eq('id', newEntry.id)
+            } else {
+                // Insert
+                await supabase.from('calendar').insert(entryToSave as any)
+            }
+
             setShowAddModal(false)
             setNewEntry({ title: '', platform: 'LinkedIn', content_type: 'text', status: 'planned', time_slot: '9:00 AM', notes: '' })
             fetchEntries()
@@ -172,15 +186,21 @@ export default function CalendarPage() {
     }
 
     async function deleteEntry(id: string) {
-        const supabase = createClient()
+        if (!confirm('Delete this entry?')) return
         await supabase.from('calendar').delete().eq('id', id)
         fetchEntries()
+    }
+
+    // Open modal for editing
+    function editEntry(entry: CalendarEntry) {
+        setNewEntry(entry)
+        setSelectedDate(entry.date)
+        setShowAddModal(true)
     }
 
     async function aiAutofill() {
         setAiLoading(true)
         try {
-            const supabase = createClient()
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) throw new Error('Not logged in')
 
@@ -242,7 +262,6 @@ export default function CalendarPage() {
     }
 
     function updateStatus(id: string, status: string) {
-        const supabase = createClient()
         supabase.from('calendar').update({ status }).eq('id', id).then(() => fetchEntries())
     }
 
@@ -425,7 +444,7 @@ export default function CalendarPage() {
                         return (
                             <div
                                 key={i}
-                                onClick={() => { if (day) { setSelectedDate(dateStr); setShowAddModal(true) } }}
+                                onClick={() => { if (day) { setSelectedDate(dateStr); setNewEntry({ title: '', platform: 'LinkedIn', content_type: 'text', status: 'planned', time_slot: '9:00 AM', notes: '' }); setShowAddModal(true) } }}
                                 className={`min-h-[80px] p-1.5 border-b border-r border-border cursor-pointer hover:bg-surface-hover transition-colors ${!day ? 'bg-surface-2' : ''} ${isToday(day || 0) ? 'bg-blue-500/5' : ''}`}
                             >
                                 {day && (
@@ -433,7 +452,7 @@ export default function CalendarPage() {
                                         <span className={`text-xs font-medium ${isToday(day) ? 'text-blue-400 font-bold' : 'text-text-muted'}`}>{day}</span>
                                         <div className="mt-0.5 space-y-0.5">
                                             {dayEntries.slice(0, 3).map((e, j) => (
-                                                <div key={j} className={`text-[9px] px-1 py-0.5 rounded truncate cursor-pointer ${e.status === 'done' ? 'bg-green-500/10 text-green-400' : e.status === 'posted' ? 'bg-blue-500/10 text-blue-400' : 'bg-surface-2 text-text-muted border border-border'}`} title={e.title}>
+                                                <div key={j} onClick={(ev) => { ev.stopPropagation(); editEntry(e) }} className={`text-[9px] px-1 py-0.5 rounded truncate cursor-pointer hover:scale-105 transition-transform ${e.status === 'done' ? 'bg-green-500/10 text-green-400' : e.status === 'posted' ? 'bg-blue-500/10 text-blue-400' : 'bg-surface-2 text-text-muted border border-border'}`} title={e.title}>
                                                     {e.title}
                                                 </div>
                                             ))}
@@ -456,37 +475,33 @@ export default function CalendarPage() {
                     </div>
                     <div className="space-y-2 mb-4">
                         {entries.filter(e => e.date === selectedDate || e.date?.startsWith(selectedDate)).map((e, i) => (
-                            <div key={e.id || i} className="flex items-center justify-between p-3 bg-surface-2 rounded-lg border border-border">
+                            <div key={e.id || i} onClick={() => editEntry(e)} className="flex items-center justify-between p-3 bg-surface-2 rounded-lg border border-border cursor-pointer hover:border-blue-500/30 transition-colors">
                                 <div>
                                     <p className="text-body-sm font-medium text-text-primary">{e.title}</p>
                                     <p className="text-caption">{e.platform} · {e.content_type} · {e.time_slot}</p>
                                     {e.notes && <p className="text-caption text-text-muted mt-0.5">{e.notes}</p>}
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <select value={e.status} onChange={ev => e.id && updateStatus(e.id, ev.target.value)} className="input text-[10px] py-0.5 w-auto">
-                                        <option value="planned">Planned</option>
-                                        <option value="drafted">Drafted</option>
-                                        <option value="scheduled">Scheduled</option>
-                                        <option value="posted">Posted</option>
-                                        <option value="done">Done</option>
-                                    </select>
-                                    <button onClick={() => e.id && deleteEntry(e.id)} className="btn-icon text-red-400"><Trash2 size={12} /></button>
+                                    <div className="text-[10px] px-2 py-0.5 rounded-full bg-surface border border-border uppercase tracking-wider font-bold text-text-muted">
+                                        {e.status}
+                                    </div>
+                                    <button onClick={(ev) => { ev.stopPropagation(); if (e.id) deleteEntry(e.id) }} className="btn-icon text-red-400 hover:bg-red-500/10"><Trash2 size={12} /></button>
                                 </div>
                             </div>
                         ))}
                     </div>
-                    <button onClick={() => setShowAddModal(true)} className="btn-secondary w-full">
+                    <button onClick={() => { setNewEntry({ title: '', platform: 'LinkedIn', content_type: 'text', status: 'planned', time_slot: '9:00 AM', notes: '' }); setShowAddModal(true) }} className="btn-secondary w-full">
                         <Plus size={14} /> Add Content for This Day
                     </button>
                 </div>
             )}
 
-            {/* Add Modal */}
+            {/* Add/Edit Modal */}
             {showAddModal && selectedDate && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowAddModal(false)}>
-                    <div className="bg-surface border border-border rounded-xl w-full max-w-md p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto" onClick={() => setShowAddModal(false)}>
+                    <div className="bg-surface border border-border rounded-xl w-full max-w-md p-6 shadow-2xl my-8 relative" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-h3 text-text-primary">Schedule Content</h3>
+                            <h3 className="text-h3 text-text-primary">{newEntry.id ? 'Edit Content' : 'Schedule Content'}</h3>
                             <button onClick={() => setShowAddModal(false)} className="btn-icon"><X size={14} /></button>
                         </div>
                         <p className="text-caption mb-4">{new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
@@ -499,14 +514,37 @@ export default function CalendarPage() {
                                 <select value={newEntry.content_type} onChange={e => setNewEntry({ ...newEntry, content_type: e.target.value })} className="input">
                                     {CONTENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                                 </select>
-                                <select value={newEntry.time_slot} onChange={e => setNewEntry({ ...newEntry, time_slot: e.target.value })} className="input">
+                                <select value={newEntry.time_slot || ''} onChange={e => setNewEntry({ ...newEntry, time_slot: e.target.value })} className="input">
                                     {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
                                 </select>
                             </div>
-                            <textarea value={newEntry.notes} onChange={e => setNewEntry({ ...newEntry, notes: e.target.value })} rows={2} className="input resize-none" placeholder="Notes, hook idea, or brief..." />
-                            <button onClick={saveEntry} disabled={saving || !newEntry.title?.trim()} className="btn-primary bg-blue-600 w-full">
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <select value={newEntry.status || 'planned'} onChange={e => setNewEntry({ ...newEntry, status: e.target.value })} className="input">
+                                    <option value="planned">Planned</option>
+                                    <option value="drafted">Drafted</option>
+                                    <option value="scheduled">Scheduled</option>
+                                    <option value="posted">Posted</option>
+                                    <option value="done">Done</option>
+                                </select>
+                            </div>
+
+                            <textarea value={newEntry.notes || ''} onChange={e => setNewEntry({ ...newEntry, notes: e.target.value })} rows={2} className="input resize-none" placeholder="Notes, hook idea, or brief..." />
+
+                            {/* Assets Section */}
+                            <div className="pt-4 border-t border-border">
+                                {newEntry.id ? (
+                                    <AssetManager parentId={newEntry.id} />
+                                ) : (
+                                    <div className="p-3 bg-surface-2 rounded-lg border border-border text-center">
+                                        <p className="text-xs text-text-muted">Save this entry to attach files & assets.</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <button onClick={saveEntry} disabled={saving || !newEntry.title?.trim()} className="btn-primary bg-blue-600 w-full mt-4">
                                 {saving ? <Loader2 size={14} className="animate-spin" /> : <CalendarIcon size={14} />}
-                                {saving ? 'Saving...' : 'Schedule'}
+                                {saving ? 'Saving...' : 'Save Schedule'}
                             </button>
                         </div>
                     </div>

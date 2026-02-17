@@ -21,6 +21,7 @@ import {
     Database,
     Zap,
     GitPullRequest,
+    Files,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ThemeToggle from './ThemeToggle'
@@ -33,6 +34,7 @@ const MAIN_NAV = [
     { href: '/calendar', label: 'Planner', icon: Calendar, badge: 3 },
     { href: '/publish', label: 'Pipeline', icon: GitPullRequest },
     { href: '/vault', label: 'Content Vault', icon: Database },
+    { href: '/assets', label: 'Assets Library', icon: Files },
     { href: '/performance', label: 'Performance', icon: BarChart3 },
 ]
 
