@@ -78,7 +78,7 @@ export default function PlaybookPage() {
 
             <div className="grid lg:grid-cols-[350px_1fr] gap-12 items-start">
                 {/* Sidebar Nav */}
-                <div className="space-y-4 sticky top-8">
+                <div className="space-y-4 lg:sticky top-8">
                     {PLAYBOOK_MODULES.map(m => (
                         <button
                             key={m.id}

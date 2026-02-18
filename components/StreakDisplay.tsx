@@ -16,8 +16,8 @@ export default function StreakDisplay({ currentStreak, bestStreak, heatmapData, 
             {/* Flame + Counter */}
             <div className="flex items-center gap-5 shrink-0">
                 <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl transition-all duration-500 ${currentStreak > 0
-                        ? 'bg-gradient-to-br from-orange-400 to-red-600 shadow-orange-500/40 animate-pulse'
-                        : 'bg-surface-2 border border-border grayscale'
+                    ? 'bg-gradient-to-br from-orange-400 to-red-600 shadow-orange-500/40 animate-pulse'
+                    : 'bg-surface-2 border border-border grayscale'
                     }`}>
                     <Flame size={32} className={`text-white ${currentStreak > 0 ? 'fill-white' : ''}`} />
                 </div>
@@ -32,15 +32,15 @@ export default function StreakDisplay({ currentStreak, bestStreak, heatmapData, 
             </div>
 
             {/* Stats Column */}
-            <div className="flex items-center gap-8 pl-8 border-l border-border/50 shrink-0">
-                <div className="flex flex-col">
+            <div className="flex items-center gap-4 sm:gap-8 px-4 lg:pl-8 border-t lg:border-t-0 lg:border-l border-border/50 pt-8 lg:pt-0 shrink-0 w-full lg:w-auto justify-center lg:justify-start">
+                <div className="flex flex-col items-center lg:items-start shrink-0">
                     <span className="text-[9px] font-bold text-text-muted uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                         <TrendingUp size={10} /> Personal Best
                     </span>
                     <span className="text-lg font-bold text-text-primary tabular-nums">{bestStreak} days</span>
                 </div>
 
-                <div className="flex flex-col">
+                <div className="flex flex-col items-center lg:items-start shrink-0">
                     <span className="text-[9px] font-bold text-text-muted uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                         <Calendar size={10} /> Status
                     </span>
@@ -64,8 +64,8 @@ export default function StreakDisplay({ currentStreak, bestStreak, heatmapData, 
                         <div key={i} className="flex-1 flex flex-col items-center gap-2">
                             <div
                                 className={`w-full aspect-square rounded-lg border transition-all duration-300 ${status === 'posted'
-                                        ? 'bg-accent border-accent shadow-lg shadow-accent/20'
-                                        : 'bg-surface-2 border-border opacity-30 shadow-inner'
+                                    ? 'bg-accent border-accent shadow-lg shadow-accent/20'
+                                    : 'bg-surface-2 border-border opacity-30 shadow-inner'
                                     }`}
                             />
                         </div>

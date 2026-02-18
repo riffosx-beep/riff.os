@@ -101,7 +101,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter leading-[0.95] md:leading-[0.9] mb-6"
+            className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tighter leading-[0.95] md:leading-[0.9] mb-6"
           >
             The Operating System <br />
             <span className="text-gradient-purple">for Modern Creators.</span>
@@ -164,7 +164,7 @@ export default function LandingPage() {
                 </div>
                 <Sparkles size={14} className="text-accent/50" />
               </div>
-              <div className="min-h-[600px] md:min-h-0 md:aspect-video bg-[#050505] p-0 flex flex-col overflow-hidden relative">
+              <div className="min-h-[400px] md:min-h-0 md:aspect-video bg-[#050505] p-0 flex flex-col overflow-hidden relative">
                 {/* Simulated App UI */}
                 <div className="flex h-full font-sans text-xs">
                   {/* SIDEBAR */}

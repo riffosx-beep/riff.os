@@ -100,17 +100,17 @@ export default function PremiumNav({ userName }: { userName?: string }) {
     return (
         <>
             <nav className="w-full bg-surface border-b border-border sticky top-0 z-50">
-                <div className="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+                <div className="max-w-[1440px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4 md:gap-8">
 
-                    {/* Left: Brand & Search */}
+                    {/* Left: Brand & Mobile Title */}
                     <div className="flex items-center gap-6 flex-1">
                         <Link href="/dashboard" className="flex items-center gap-2 group">
-                            <span className="font-bold text-lg tracking-tight text-text-primary hidden md:block">
-                                RiffOS <span className="ml-1 text-[9px] bg-accent/10 text-accent px-1.5 py-0.5 rounded border border-accent/20 align-top uppercase tracking-widest">Beta</span>
+                            <span className="font-bold text-lg tracking-tight text-text-primary">
+                                RiffOS <span className="ml-1 text-[9px] bg-accent/10 text-accent px-1.5 py-0.5 rounded border border-accent/20 align-top uppercase tracking-widest hidden xs:inline-block">Beta</span>
                             </span>
                         </Link>
 
-                        <div className="max-w-xs w-full hidden md:block">
+                        <div className="max-w-[240px] w-full hidden lg:block">
                             <div className="relative group/search">
                                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors group-focus-within/search:text-accent" />
                                 <input
@@ -125,8 +125,8 @@ export default function PremiumNav({ userName }: { userName?: string }) {
                         </div>
                     </div>
 
-                    {/* Center: Main Navigation */}
-                    <div className="flex items-center gap-1 h-full">
+                    {/* Center: Main Navigation (Desktop Only) */}
+                    <div className="hidden min-[1100px]:flex items-center gap-1 h-full">
                         {NAV_ITEMS.map((item) => {
                             const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
                             return (
@@ -149,10 +149,10 @@ export default function PremiumNav({ userName }: { userName?: string }) {
                     </div>
 
                     {/* Right side: Tools & Profile */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 md:gap-2">
                         <button
                             onClick={() => setShowFeedback(true)}
-                            className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-surface-2 border border-border hover:border-accent/50 rounded-lg text-[10px] font-bold text-text-muted hover:text-text-primary transition-all mr-2"
+                            className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-surface-2 border border-border hover:border-accent/50 rounded-lg text-[10px] font-bold text-text-muted hover:text-text-primary transition-all mr-1 md:mr-2"
                         >
                             <Sparkles size={12} className="text-accent" />
                             FEEDBACK
@@ -174,12 +174,7 @@ export default function PremiumNav({ userName }: { userName?: string }) {
                             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                         </button>
 
-                        <button className="w-9 h-9 rounded-lg flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-2 transition-all relative">
-                            <Bell size={18} />
-                            <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-surface shadow-sm" />
-                        </button>
-
-                        <div className="relative ml-2">
+                        <div className="relative ml-1 md:ml-2">
                             <button
                                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                                 className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-accent/20 hover:scale-105 transition-transform"
@@ -217,7 +212,34 @@ export default function PremiumNav({ userName }: { userName?: string }) {
                     </div>
                 </div>
             </nav>
+
+            {/* Mobile Bottom Navigation */}
+            <nav className="min-[1100px]:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface border-t border-border z-50 px-2 flex items-center justify-around safe-bottom">
+                {NAV_ITEMS.map((item) => {
+                    const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+                    return (
+                        <Link
+                            key={item.id}
+                            href={item.href}
+                            className={`
+                                flex flex-col items-center justify-center gap-1 flex-1 py-1 px-1 rounded-xl transition-all duration-300
+                                ${isActive ? 'text-accent bg-accent/5' : 'text-text-muted hover:text-text-primary'}
+                            `}
+                        >
+                            <item.icon size={18} />
+                            <span className="text-[9px] font-bold tracking-tight uppercase">{item.label}</span>
+                        </Link>
+                    )
+                })}
+            </nav>
             <FeedbackModal isOpen={showFeedback} onClose={() => setShowFeedback(false)} />
+            <style jsx global>{`
+                @media (max-width: 1100px) {
+                    main {
+                        padding-bottom: 80px !important;
+                    }
+                }
+            `}</style>
         </>
     )
 }
