@@ -2,29 +2,56 @@
 
 import React, { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Lightbulb, PenTool, ArrowRight, Sparkles, Loader2 } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 import ScriptConfig from '@/components/scripts/ScriptConfig'
 import ScriptEditor from '@/components/scripts/ScriptEditor'
+import IdeaVault from '@/components/ideation/IdeaVault'
 
 export default function IdeationPage() {
     const [mode, setMode] = useState<'vault' | 'studio'>('studio')
-    const [selectedIdea, setSelectedIdea] = useState<any>(null)
 
-    // Config State (Lifted from ScriptsPage)
+    // Config State
     const [config, setConfig] = useState({
         topic: '',
-        platform: 'youtube', // Default to YouTube for long form support
+        platform: 'youtube',
         framework: 'hormozi',
-        contentType: 'educational', // Default for 10min support
+        contentType: 'educational',
         tone: 50,
-        duration: '10min', // Default to 10min for premium feel
+        duration: '10min',
         styles: [] as string[],
         ideaId: null as string | null
     })
 
     const [scriptData, setScriptData] = useState<any>(null)
     const [isGenerating, setIsGenerating] = useState(false)
+    const searchParams = useSearchParams()
+
+    useEffect(() => {
+        const topic = searchParams.get('topic')
+        const content = searchParams.get('content')
+        const ideaId = searchParams.get('ideaId')
+
+        if (topic || content) {
+            setConfig(prev => ({
+                ...prev,
+                topic: topic || content || '',
+                ideaId: ideaId || null
+            }))
+            setMode('studio')
+        }
+    }, [searchParams])
+
+    // Handle selecting from vault
+    const handleVaultSelect = (item: any) => {
+        setConfig({
+            ...config,
+            topic: item.content || item.title,
+            ideaId: item.id
+        })
+        setMode('studio')
+    }
 
     // Handle "Global Generate"
     const handleGenerate = async () => {
@@ -100,61 +127,112 @@ export default function IdeationPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="max-w-7xl mx-auto space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-200">
                         Content Studio
                     </h1>
-                    <p className="text-text-muted mt-1">From raw idea to production-ready script.</p>
+                    <p className="text-text-muted mt-1 text-sm">Convert raw ideas into viral production-ready scripts.</p>
                 </div>
-                <div className="flex bg-surface border border-border rounded-lg p-1">
+                <div className="flex gap-4 border-b border-border/50">
                     <button
                         onClick={() => setMode('vault')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'vault' ? 'bg-surface-2 text-text-primary shadow-sm' : 'text-text-muted hover:text-text-secondary'}`}
+                        className={`pb-2 text-xs font-bold uppercase tracking-widest transition-colors ${mode === 'vault' ? 'text-accent border-b-2 border-accent' : 'text-text-muted hover:text-text-secondary'}`}
                     >
                         Idea Vault
                     </button>
                     <button
                         onClick={() => setMode('studio')}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'studio' ? 'bg-surface-2 text-text-primary shadow-sm' : 'text-text-muted hover:text-text-secondary'}`}
+                        className={`pb-2 text-xs font-bold uppercase tracking-widest transition-colors ${mode === 'studio' ? 'text-accent border-b-2 border-accent' : 'text-text-muted hover:text-text-secondary'}`}
                     >
                         Script Editor
                     </button>
                 </div>
             </div>
 
-            {mode === 'studio' ? (
-                <div className="grid lg:grid-cols-[400px_1fr] gap-6 min-h-[600px]">
-                    {/* Left: Input Config */}
-                    <div className="bg-surface border border-border rounded-xl overflow-hidden flex flex-col shadow-lg shadow-purple-900/5">
-                        <ScriptConfig
-                            config={config}
-                            setConfig={setConfig}
-                            onGenerate={handleGenerate}
-                            isGenerating={isGenerating}
-                        />
-                    </div>
+            <AnimatePresence mode="wait">
+                {mode === 'studio' ? (
+                    <motion.div
+                        key="studio"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="grid lg:grid-cols-[420px_1fr] gap-6"
+                    >
+                        {/* Left: Input Config */}
+                        <div className="bg-surface/40 backdrop-blur-sm border border-border rounded-2xl overflow-hidden flex flex-col shadow-2xl">
+                            <ScriptConfig
+                                config={config}
+                                setConfig={setConfig}
+                                onGenerate={handleGenerate}
+                                isGenerating={isGenerating}
+                            />
+                        </div>
 
-                    {/* Right: Output */}
-                    <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-lg shadow-purple-900/5 min-h-[600px]">
-                        <ScriptEditor
-                            scriptData={scriptData}
-                            onRegenerate={handleGenerate}
-                            onRefine={handleRefine}
-                            isGenerating={isGenerating}
-                        />
-                    </div>
-                </div>
-            ) : (
-                <div className="bg-surface border border-border rounded-xl p-12 text-center text-text-muted">
-                    <p>Idea Vault integration coming in next update...</p>
-                    <button onClick={() => setMode('studio')} className="mt-4 text-accent hover:underline">
-                        Go to Script Editor
-                    </button>
-                </div>
-            )}
+                        {/* Right: Output */}
+                        <div className="bg-surface/40 backdrop-blur-sm border border-border rounded-2xl overflow-hidden shadow-2xl min-h-[700px]">
+                            <ScriptEditor
+                                scriptData={scriptData}
+                                onRegenerate={handleGenerate}
+                                onRefine={handleRefine}
+                                isGenerating={isGenerating}
+                                onSave={async (data) => {
+                                    const supabase = createClient()
+                                    const { data: { user } } = await supabase.auth.getUser()
+                                    if (!user) return
+
+                                    // 1. Save Script
+                                    const { data: savedScript, error } = await supabase.from('vault').insert({
+                                        user_id: user.id,
+                                        title: config.topic,
+                                        content: data.content,
+                                        type: 'script',
+                                        status: 'active',
+                                        source: 'ai',
+                                        metadata: {
+                                            platform: config.platform,
+                                            framework: config.framework,
+                                            hooks: data.hooks,
+                                            settings: config,
+                                            origin_idea_id: config.ideaId
+                                        }
+                                    }).select().single()
+
+                                    if (error) {
+                                        console.error(error)
+                                        return
+                                    }
+
+                                    // 2. If generated from an Idea, Link it!
+                                    if (config.ideaId) {
+                                        // Update idea to point to this script? or just mark as 'processed'
+                                        // Ideally we want to show it moved in the pipeline
+                                        // But since both are in 'vault', we typically change the type OR keep both linked
+                                        // Let's keep both linked for now so we don't lose the original idea
+                                        await supabase.from('vault').update({
+                                            status: 'processed',
+                                            metadata: { linked_script_id: savedScript.id } // Append to metadata? requires fetching first.
+                                            // simpler: just update status
+                                        }).eq('id', config.ideaId)
+                                    }
+                                }}
+                            />
+                        </div>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="vault"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        className="h-[calc(100vh-250px)]"
+                    >
+                        <IdeaVault onSelect={handleVaultSelect} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

@@ -2,20 +2,58 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Copy, RefreshCw, Zap, TrendingUp, AlertTriangle, Check, Sliders, Loader2, Sparkles } from 'lucide-react'
+import { Copy, RefreshCw, Zap, TrendingUp, AlertTriangle, Check, Sliders, Loader2, Sparkles, Save } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 interface ScriptEditorProps {
     scriptData: any
     onRegenerate: () => void
     onRefine: (feedback: string) => void
     isGenerating: boolean
+    onSave?: (data: any) => Promise<void>
 }
 
-export default function ScriptEditor({ scriptData, onRegenerate, onRefine, isGenerating }: ScriptEditorProps) {
+export default function ScriptEditor({ scriptData, onRegenerate, onRefine, isGenerating, onSave }: ScriptEditorProps) {
     const [selectedHook, setSelectedHook] = useState(0)
     const [activeTab, setActiveTab] = useState<'editor' | 'optimizer'>('editor')
     const [scriptContent, setScriptContent] = useState(scriptData?.content || '')
     const [refinePrompt, setRefinePrompt] = useState('')
+    const [isSaving, setIsSaving] = useState(false)
+    const [saveSuccess, setSaveSuccess] = useState(false)
+
+    const handleSave = async () => {
+        if (!scriptContent || isSaving) return
+        setIsSaving(true)
+        try {
+            const supabase = createClient()
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) throw new Error('Not authenticated')
+
+            const { error } = await supabase.from('vault').insert({
+                user_id: user.id,
+                title: scriptData.title || `Script: ${scriptContent.slice(0, 30)}...`,
+                content: scriptContent,
+                type: 'script',
+                status: 'active',
+                source: 'ai',
+                metadata: {
+                    hooks: scriptData.hooks,
+                    score: scriptData.score
+                }
+            })
+
+            if (error) throw error
+
+            setSaveSuccess(true)
+            setTimeout(() => setSaveSuccess(false), 3000)
+            if (onSave) await onSave(scriptData)
+        } catch (err) {
+            console.error('Save failed:', err)
+            alert('Failed to save to vault')
+        } finally {
+            setIsSaving(false)
+        }
+    }
 
     // Update internal content when props change
     React.useEffect(() => {
@@ -82,6 +120,14 @@ export default function ScriptEditor({ scriptData, onRegenerate, onRefine, isGen
                 <div className="flex gap-2">
                     <button onClick={onRegenerate} disabled={isGenerating} className="p-2 text-text-muted hover:text-text-primary transition-colors" title="Regenerate">
                         <RefreshCw size={16} className={`${isGenerating ? 'animate-spin' : ''}`} />
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={isSaving || isGenerating}
+                        className={`btn-secondary text-[10px] font-bold uppercase tracking-widest px-4 h-8 flex items-center gap-2 transition-all ${saveSuccess ? 'bg-green-500/10 text-green-500 border-green-500/30' : ''}`}
+                    >
+                        {isSaving ? <Loader2 size={12} className="animate-spin" /> : saveSuccess ? <Check size={12} /> : <Save size={12} />}
+                        {isSaving ? 'Saving...' : saveSuccess ? 'Saved' : 'Save to Vault'}
                     </button>
                     <button onClick={() => handleExport('txt')} className="btn-secondary text-xs h-8">
                         Export .TXT

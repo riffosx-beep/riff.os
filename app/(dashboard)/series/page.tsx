@@ -16,7 +16,9 @@ import {
     Target,
     Clock,
     LinkIcon,
+    Save
 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 interface SeriesPost {
     day: number
@@ -47,6 +49,44 @@ export default function SeriesPage() {
     const [seriesTitle, setSeriesTitle] = useState('')
     const [expandedPost, setExpandedPost] = useState<number | null>(null)
     const [copied, setCopied] = useState('')
+    const [isSaving, setIsSaving] = useState(false)
+    const [saveSuccess, setSaveSuccess] = useState(false)
+
+    const handleSaveToVault = async () => {
+        if (series.length === 0 || isSaving) return
+        setIsSaving(true)
+        try {
+            const supabase = createClient()
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) throw new Error('Not authenticated')
+
+            const content = series.map(p => `DAY ${p.day}: ${p.title}\nHook: ${p.hook}\nBody: ${p.body}\nCTA: ${p.cta}`).join('\n\n---\n\n')
+
+            const { error } = await supabase.from('vault').insert({
+                user_id: user.id,
+                title: seriesTitle || `Series: ${topic}`,
+                content: content,
+                type: 'script',
+                status: 'active',
+                source: 'ai',
+                metadata: {
+                    platform,
+                    days,
+                    goal,
+                    posts: series
+                }
+            })
+
+            if (error) throw error
+            setSaveSuccess(true)
+            setTimeout(() => setSaveSuccess(false), 3000)
+        } catch (err) {
+            console.error(err)
+            alert('Failed to save to vault')
+        } finally {
+            setIsSaving(false)
+        }
+    }
 
     const copyText = (text: string, id: string) => {
         navigator.clipboard.writeText(text)
@@ -186,9 +226,19 @@ export default function SeriesPage() {
             {/* Results */}
             {series.length > 0 && (
                 <div className="space-y-4">
-                    <div className="card p-5">
-                        <h2 className="text-h3 text-text-primary">{seriesTitle}</h2>
-                        <p className="text-caption mt-1">{series.length} posts · {platform} · {goal}</p>
+                    <div className="card p-5 flex items-center justify-between">
+                        <div>
+                            <h2 className="text-h3 text-text-primary">{seriesTitle}</h2>
+                            <p className="text-caption mt-1">{series.length} posts · {platform} · {goal}</p>
+                        </div>
+                        <button
+                            onClick={handleSaveToVault}
+                            disabled={isSaving}
+                            className={`btn-secondary text-[10px] font-bold uppercase tracking-widest px-4 py-2 flex items-center gap-2 transition-all ${saveSuccess ? 'bg-green-500/10 text-green-500 border-green-500/20' : ''}`}
+                        >
+                            {isSaving ? <Loader2 size={12} className="animate-spin" /> : saveSuccess ? <Check size={12} /> : <Save size={12} />}
+                            {isSaving ? 'Saving...' : saveSuccess ? 'Saved to Vault' : 'Save Entire Series'}
+                        </button>
                     </div>
 
                     <div className="space-y-2">

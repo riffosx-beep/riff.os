@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "RiffOS | The Content Command Center",
-  description: "Stop guessing. Start growing. The neural operating system for high-performance founders.",
+  title: "RiffOS - Public Beta",
+  description: "The AI-native operating system for modern creators. Build better content, faster.",
 };
 
 export default function RootLayout({

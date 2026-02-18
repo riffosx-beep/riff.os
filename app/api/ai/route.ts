@@ -1451,6 +1451,50 @@ Return JSON:
         return NextResponse.json({ results: matchedResults, suggestion: parsed.suggestion })
       }
 
+      // ═══════════════════════════════════════════════════════
+      // PILLAR 3: REPURPOSER — Content Transformation
+      // ═══════════════════════════════════════════════════════
+      case 'repurpose': {
+        const {
+          content,
+          action, // 'hook-optimize' | 'remix-twitter' | 'remix-linkedin'
+          platform = 'LinkedIn',
+          tone = 'professional'
+        } = params
+
+        const tasks: Record<string, { prompt: string, format: string }> = {
+          'hook-optimize': {
+            prompt: `Take the following script/post and generate 10 viral hook variations. Apply different psychological triggers: pattern interrupt, curiosity gap, contrarian truth, specific numbers, and personal failure. Each hook should be punchy and platform-appropriate for ${platform}.`,
+            format: `{ "hooks": [ { "text": "Hook text", "trigger": "Psychological trigger used", "why": "Explanation" } ] }`
+          },
+          'remix-twitter': {
+            prompt: `Transform the following content into a high-engagement Twitter thread (5-8 tweets). Each tweet must be under 280 characters and deliver standalone value. Use threads architecture: Hook → Problem → Solution → CTA.`,
+            format: `{ "thread": [ { "tweet_number": 1, "text": "Tweet text" } ] }`
+          },
+          'remix-linkedin': {
+            prompt: `Transform the following content into a professional yet viral LinkedIn post. Use the RiffOS format: Standalone Hook line → Context → 3-5 short paragraphs → Reflective closing question.`,
+            format: `{ "post": "Complete LinkedIn post text" }`
+          }
+        }
+
+        const task = tasks[action as keyof typeof tasks] || tasks['hook-optimize']
+
+        const systemPrompt = `You are a content repurposing specialist. Your job is to take an existing asset and transform it into a new, high-performing format.
+        
+        ${voiceContext}
+        
+        Return exactly in this JSON format:
+        ${task.format}`
+
+        const userPrompt = `TASK: ${task.prompt}\n\nCONTENT TO TRANSFORM:\n${content}`
+
+        const result = await generateAIResponse(systemPrompt, userPrompt)
+        const repurposed = safeParseJSON(result)
+        if (!repurposed) return NextResponse.json({ error: 'Failed to parse transformed content' }, { status: 500 })
+
+        return NextResponse.json({ result: repurposed })
+      }
+
       default:
         return NextResponse.json({ error: `Unknown action type: ${type}` }, { status: 400 })
     }

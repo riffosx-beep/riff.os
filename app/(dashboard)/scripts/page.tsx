@@ -74,15 +74,19 @@ export default function ScriptsPage() {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) throw new Error('Unauthorized')
 
-            const { error } = await supabase.from('scripts').insert({
+            const { error } = await supabase.from('vault').insert({
                 user_id: user.id,
                 title: config.topic,
                 content: scriptData.content,
-                platform: config.platform,
-                status: 'draft',
-                framework: config.framework,
-                hooks: scriptData.hooks, // JSONB
-                settings: config // JSONB
+                type: 'script',
+                status: 'active',
+                source: 'ai',
+                metadata: {
+                    platform: config.platform,
+                    framework: config.framework,
+                    hooks: scriptData.hooks,
+                    settings: config
+                }
             })
 
             if (error) {

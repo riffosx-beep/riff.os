@@ -1,287 +1,280 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
+    ChevronRight,
+    ChevronLeft,
+    Sparkles,
+    Target,
+    Zap,
+    Send,
+    CheckCircle2,
     ArrowRight,
-    Check,
-    User,
-    Briefcase,
-    Megaphone,
-    PenTool,
-    Layers,
-    Clock,
-    Brain,
-    BarChart3,
-    Mic,
-    FileText,
-    Loader2
+    Loader2,
+    MessageSquare,
+    Users,
+    Globe,
+    Search
 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
-// ─── STEP 1: ROLE ───
-const ROLES = [
-    { id: 'founder', label: 'Founder', icon: User },
-    { id: 'coach', label: 'Coach', icon: Briefcase },
-    { id: 'creator', label: 'Creator', icon: Megaphone },
-    { id: 'agency', label: 'Agency', icon: Layers },
+const STEPS = [
+    {
+        id: 'bottleneck',
+        title: 'The Mission Control',
+        subtitle: 'What is your #1 content bottleneck right now?',
+        options: [
+            { id: 'ideas', label: 'Generating viral ideas', icon: Zap },
+            { id: 'scripts', label: 'Writing high-quality scripts', icon: Sparkles },
+            { id: 'consistency', label: 'Maintaining a daily posting habit', icon: Target },
+            { id: 'distribution', label: 'Repurposing across platforms', icon: Users }
+        ]
+    },
+    {
+        id: 'source',
+        title: 'The Connection',
+        subtitle: 'How did you hear about the RiffOS signal?',
+        options: [
+            { id: 'linkedin', label: 'LinkedIn Feed', icon: MessageSquare },
+            { id: 'twitter', label: 'Twitter / X', icon: Globe },
+            { id: 'referral', label: 'A fellow creator', icon: Users },
+            { id: 'search', label: 'Organic search / Article', icon: Search },
+            { id: 'other', label: 'Other source', icon: ChevronRight }
+        ]
+    },
+    {
+        id: 'expectation',
+        title: 'The Vision',
+        subtitle: 'What do you expect RiffOS to solve for you in the next 30 days?',
+        type: 'textarea'
+    }
 ]
-
-const PLATFORMS = [
-    { id: 'twitter', label: 'Twitter/X' },
-    { id: 'linkedin', label: 'LinkedIn' },
-    { id: 'instagram', label: 'Instagram' },
-    { id: 'youtube', label: 'YouTube' },
-    { id: 'tiktok', label: 'TikTok' },
-    { id: 'newsletter', label: 'Newsletter' },
-]
-
-// ─── STEP 2: STRUGGLES ───
-const STRUGGLES = [
-    { id: 'no_ideas', label: 'No ideas (Empty brain)', icon: Brain },
-    { id: 'structure', label: 'Structuring thoughts', icon: Layers },
-    { id: 'time', label: 'Writing takes too long', icon: Clock },
-    { id: 'voice', label: 'Doesn\'t sound like me', icon: Mic },
-    { id: 'analytics', label: 'No analytics insight', icon: BarChart3 },
-    { id: 'consistency', label: 'Inconsistency', icon: FileText },
-]
-
-// ─── STEP 3: VOICE ───
-const TONES = ['Professional', 'Casual', 'Provocative', 'Educational']
-const STYLES = ['Storytelling', 'Data-driven', 'Conversational', 'Direct']
 
 export default function OnboardingPage() {
-    const router = useRouter()
-    const [step, setStep] = useState(1)
+    const [currentStep, setCurrentStep] = useState(0)
+    const [responses, setResponses] = useState<any>({
+        bottleneck: '',
+        source: '',
+        expectation: ''
+    })
     const [loading, setLoading] = useState(false)
+    const [submitting, setSubmitting] = useState(false)
+    const router = useRouter()
+    const supabase = createClient()
 
-    // Data
-    const [role, setRole] = useState('')
-    const [platforms, setPlatforms] = useState<string[]>([])
-    const [struggles, setStruggles] = useState<string[]>([])
-    const [voiceMethod, setVoiceMethod] = useState<'upload' | 'manual' | null>(null)
-    const [voiceConfig, setVoiceConfig] = useState({ tone: 'Professional', style: 'Storytelling' })
-
-    const toggleSelection = (list: string[], setList: (l: string[]) => void, item: string) => {
-        if (list.includes(item)) {
-            setList(list.filter(i => i !== item))
-        } else {
-            setList([...list, item])
+    const handleOptionSelect = (optionId: string) => {
+        const step = STEPS[currentStep]
+        setResponses({ ...responses, [step.id]: optionId })
+        if (currentStep < STEPS.length - 1) {
+            setTimeout(() => setCurrentStep(currentStep + 1), 300)
         }
     }
 
-    const handleComplete = async () => {
-        setLoading(true)
-        // Simulate API call to save preferences
-        await new Promise(resolve => setTimeout(resolve, 2000))
-
-        // Save to local storage for "persisting" the demo state
-        localStorage.setItem('architect_onboarding', JSON.stringify({
-            role, platforms, struggles, voiceConfig
-        }))
-
-        router.push('/home')
+    const handleNext = () => {
+        if (currentStep < STEPS.length - 1) {
+            setCurrentStep(currentStep + 1)
+        } else {
+            handleSubmit()
+        }
     }
 
+    const handleBack = () => {
+        if (currentStep > 0) {
+            setCurrentStep(currentStep - 1)
+        }
+    }
+
+    const handleSubmit = async () => {
+        setSubmitting(true)
+        try {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) throw new Error('No user found')
+
+            // Update user settings in profiles
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    settings: {
+                        onboarding_completed: true,
+                        onboarding_responses: responses,
+                        onboarded_at: new Date().toISOString()
+                    }
+                })
+                .eq('id', user.id)
+
+            if (error) throw error
+
+            // Final transition
+            setCurrentStep(STEPS.length) // Special state for completion
+            setTimeout(() => {
+                router.push('/dashboard')
+            }, 2500)
+
+        } catch (err) {
+            console.error('Onboarding update failed:', err)
+            alert('Something went wrong. Redirecting to dashboard...')
+            router.push('/dashboard')
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    const step = STEPS[currentStep]
+    const progress = (currentStep / STEPS.length) * 100
+
     return (
-        <div className="min-h-screen bg-bg flex flex-col items-center justify-center p-6 relative overflow-hidden">
-            {/* Background Decorations */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-surface-2">
+        <div className="min-h-screen bg-[#050505] text-white flex flex-col font-sans selection:bg-accent overflow-hidden">
+            {/* Background Effects */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent/10 blur-[150px] rounded-full opacity-40" />
+                <div className="absolute -top-1/4 -right-1/4 w-[600px] h-[600px] bg-purple-600/10 blur-[120px] rounded-full opacity-30" />
+            </div>
+
+            {/* Progress Bar */}
+            <div className="fixed top-0 left-0 w-full h-1 bg-white/5 z-50">
                 <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${(step / 3) * 100}%` }}
-                    className="h-full bg-accent transition-all duration-500"
+                    animate={{ width: `${progress}%` }}
+                    className="h-full bg-accent shadow-[0_0_10px_rgba(124,58,237,0.5)]"
                 />
             </div>
 
-            <div className="w-full max-w-2xl z-10">
-                {/* Header */}
-                <div className="text-center mb-10">
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">
-                        {step === 1 && "Let's personalize Architect."}
-                        {step === 2 && "What's holding you back?"}
-                        {step === 3 && "Connect your voice."}
-                    </h1>
-                    <p className="text-text-muted">
-                        {step === 1 && "Better inputs = Better AI outputs."}
-                        {step === 2 && "We'll tailor your dashboard to solve these."}
-                        {step === 3 && "Train the AI to write exactly like you."}
-                    </p>
-                </div>
-
-                {/* ─── STEP 1: ROLE & PLATFORMS ─── */}
-                {step === 1 && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                        className="space-y-8"
-                    >
-                        <div className="space-y-4">
-                            <label className="text-xs font-bold uppercase tracking-wider text-text-muted icon-text-muted">What best describes you?</label>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                {ROLES.map(r => (
-                                    <button
-                                        key={r.id}
-                                        onClick={() => setRole(r.id)}
-                                        className={`p-4 rounded-xl border flex flex-col items-center gap-3 transition-all ${role === r.id
-                                                ? 'bg-accent text-white border-accent shadow-lg shadow-accent/20'
-                                                : 'bg-surface border-border hover:border-text-muted'
-                                            }`}
-                                    >
-                                        <r.icon size={24} />
-                                        <span className="text-sm font-medium">{r.label}</span>
-                                    </button>
-                                ))}
+            <main className="flex-1 flex flex-col items-center justify-center p-6 relative z-10 w-full max-w-4xl mx-auto">
+                <AnimatePresence mode="wait">
+                    {currentStep < STEPS.length ? (
+                        <motion.div
+                            key={currentStep}
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                            className="w-full space-y-12"
+                        >
+                            <div className="space-y-4 text-center">
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="flex items-center justify-center gap-2 text-accent text-[10px] font-black uppercase tracking-[0.3em] mb-4"
+                                >
+                                    <span className="w-8 h-[1px] bg-accent/30" />
+                                    Phase 0{currentStep + 1}
+                                    <span className="w-8 h-[1px] bg-accent/30" />
+                                </motion.div>
+                                <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic">{step.title}</h1>
+                                <p className="text-gray-400 text-lg md:text-xl font-medium max-w-2xl mx-auto italic">{step.subtitle}</p>
                             </div>
-                        </div>
 
-                        {role && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                                <label className="text-xs font-bold uppercase tracking-wider text-text-muted">Primary Platforms</label>
-                                <div className="flex flex-wrap gap-3">
-                                    {PLATFORMS.map(p => (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto w-full">
+                                {step.type === 'textarea' ? (
+                                    <div className="col-span-full space-y-6">
+                                        <textarea
+                                            value={responses.expectation}
+                                            onChange={(e) => setResponses({ ...responses, expectation: e.target.value })}
+                                            placeholder="Tell us what success looks like..."
+                                            className="w-full h-48 bg-white/[0.03] border border-white/10 rounded-3xl p-6 text-lg focus:outline-none focus:border-accent focus:bg-white/[0.05] transition-all resize-none italic"
+                                        />
                                         <button
-                                            key={p.id}
-                                            onClick={() => toggleSelection(platforms, setPlatforms, p.id)}
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${platforms.includes(p.id)
-                                                    ? 'bg-white text-black border-white'
-                                                    : 'bg-surface-2 border-transparent text-text-secondary hover:bg-surface-hover'
-                                                }`}
+                                            onClick={handleNext}
+                                            disabled={!responses.expectation.trim() || submitting}
+                                            className="w-full h-16 bg-white text-black hover:bg-accent hover:text-white rounded-2xl font-black tracking-[0.2em] uppercase text-xs transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-[0.98] disabled:opacity-30 group"
                                         >
-                                            {p.label} {platforms.includes(p.id) && "✓"}
+                                            {submitting ? (
+                                                <Loader2 size={20} className="animate-spin" />
+                                            ) : (
+                                                <>
+                                                    Initialize System <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                                </>
+                                            )}
                                         </button>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
-                    </motion.div>
-                )}
-
-                {/* ─── STEP 2: STRUGGLES ─── */}
-                {step === 2 && (
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-                        className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-                    >
-                        {STRUGGLES.map(s => (
-                            <button
-                                key={s.id}
-                                onClick={() => toggleSelection(struggles, setStruggles, s.id)}
-                                className={`p-4 rounded-xl border text-left flex items-start gap-4 transition-all ${struggles.includes(s.id)
-                                        ? 'bg-surface border-accent shadow-[0_0_0_1px_var(--accent)]'
-                                        : 'bg-surface border-border hover:border-text-muted'
-                                    }`}
-                            >
-                                <div className={`p-2 rounded-lg ${struggles.includes(s.id) ? 'bg-accent/10 text-accent' : 'bg-surface-2 text-text-muted'}`}>
-                                    <s.icon size={20} />
-                                </div>
-                                <div>
-                                    <h3 className={`text-sm font-semibold ${struggles.includes(s.id) ? 'text-text-primary' : 'text-text-secondary'}`}>{s.label}</h3>
-                                </div>
-                            </button>
-                        ))}
-                    </motion.div>
-                )}
-
-                {/* ─── STEP 3: VOICE ─── */}
-                {step === 3 && (
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-                        className="space-y-6"
-                    >
-                        {!voiceMethod ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <button
-                                    onClick={() => setVoiceMethod('upload')}
-                                    className="group p-8 rounded-2xl border border-dashed border-border hover:border-accent hover:bg-surface transition-all text-center space-y-4"
-                                >
-                                    <div className="w-12 h-12 rounded-full bg-surface-2 flex items-center justify-center mx-auto group-hover:bg-accent group-hover:text-white transition-colors">
-                                        <FileText size={20} />
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold">Analyze Past Content</h3>
-                                        <p className="text-xs text-text-muted mt-1">Upload 5-10 posts and we'll extract your DNA.</p>
-                                    </div>
-                                </button>
-                                <button
-                                    onClick={() => setVoiceMethod('manual')}
-                                    className="group p-8 rounded-2xl border border-dashed border-border hover:border-accent hover:bg-surface transition-all text-center space-y-4"
-                                >
-                                    <div className="w-12 h-12 rounded-full bg-surface-2 flex items-center justify-center mx-auto group-hover:bg-accent group-hover:text-white transition-colors">
-                                        <PenTool size={20} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold">Describe Manually</h3>
-                                        <p className="text-xs text-text-muted mt-1">Select tone and style tags tailored to you.</p>
-                                    </div>
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="bg-surface border border-border rounded-xl p-8 animate-enter">
-                                {voiceMethod === 'manual' && (
-                                    <div className="space-y-6">
-                                        <div>
-                                            <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-3">Tone</label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {TONES.map(t => (
-                                                    <button
-                                                        key={t}
-                                                        onClick={() => setVoiceConfig({ ...voiceConfig, tone: t })}
-                                                        className={`px-4 py-2 rounded-full text-xs font-medium border transition-all ${voiceConfig.tone === t ? 'bg-black text-white border-black' : 'border-border text-text-secondary'
-                                                            }`}
-                                                    >
-                                                        {t}
-                                                    </button>
-                                                ))}
+                                ) : (
+                                    step.options?.map((opt) => (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => handleOptionSelect(opt.id)}
+                                            className={`
+                                                p-6 rounded-2xl border flex items-center gap-5 transition-all duration-300 text-left group
+                                                ${responses[step.id] === opt.id
+                                                    ? 'bg-accent border-accent shadow-xl shadow-accent/20'
+                                                    : 'bg-white/[0.02] border-white/5 hover:border-white/20 hover:bg-white/[0.04]'}
+                                            `}
+                                        >
+                                            <div className={`
+                                                w-12 h-12 rounded-xl flex items-center justify-center transition-colors
+                                                ${responses[step.id] === opt.id ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500 group-hover:text-accent'}
+                                            `}>
+                                                <opt.icon size={24} />
                                             </div>
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-3">Style</label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {STYLES.map(s => (
-                                                    <button
-                                                        key={s}
-                                                        onClick={() => setVoiceConfig({ ...voiceConfig, style: s })}
-                                                        className={`px-4 py-2 rounded-full text-xs font-medium border transition-all ${voiceConfig.style === s ? 'bg-black text-white border-black' : 'border-border text-text-secondary'
-                                                            }`}
-                                                    >
-                                                        {s}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                                {voiceMethod === 'upload' && (
-                                    <div className="text-center py-8">
-                                        <p className="text-text-muted text-sm">Upload simulation active. We'll use "Professional Storytelling" as default.</p>
-                                        <button onClick={() => setVoiceMethod('manual')} className="text-xs text-accent mt-4 hover:underline">Switch to Manual</button>
-                                    </div>
+                                            <span className={`font-bold transition-colors ${responses[step.id] === opt.id ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
+                                                {opt.label}
+                                            </span>
+                                        </button>
+                                    ))
                                 )}
                             </div>
-                        )}
-                    </motion.div>
-                )}
 
-                {/* ─── NAVIGATION ─── */}
-                <div className="mt-10 flex justify-end">
-                    {step < 3 ? (
-                        <button
-                            onClick={() => setStep(step + 1)}
-                            disabled={step === 1 && !role}
-                            className="btn-primary px-8 py-3 text-sm h-12 shadow-xl shadow-accent/10"
-                        >
-                            Continue <ArrowRight size={16} />
-                        </button>
+                            {/* Footer Nav */}
+                            <div className="flex items-center justify-between max-w-2xl mx-auto w-full pt-8">
+                                <button
+                                    onClick={handleBack}
+                                    className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors ${currentStep === 0 ? 'opacity-0 pointer-events-none' : ''}`}
+                                >
+                                    <ChevronLeft size={14} /> Back
+                                </button>
+                                {step.type !== 'textarea' && responses[step.id] && (
+                                    <button
+                                        onClick={handleNext}
+                                        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-accent hover:underline transition-all"
+                                    >
+                                        Next Phase <ChevronRight size={14} />
+                                    </button>
+                                )}
+                            </div>
+                        </motion.div>
                     ) : (
-                        <button
-                            onClick={handleComplete}
-                            disabled={!voiceMethod && !loading}
-                            className="btn-primary px-8 py-3 text-sm h-12 w-full sm:w-auto shadow-xl shadow-accent/20"
+                        <motion.div
+                            key="completion"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="text-center space-y-8"
                         >
-                            {loading ? <Loader2 className="animate-spin" /> : "Launch Architect OS"}
-                        </button>
+                            <div className="relative inline-block">
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ type: "spring", damping: 12 }}
+                                    className="w-24 h-24 bg-accent rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-accent/40"
+                                >
+                                    <CheckCircle2 size={48} className="text-white" />
+                                </motion.div>
+                                <motion.div
+                                    animate={{
+                                        scale: [1, 1.2, 1],
+                                        opacity: [0.5, 0.2, 0.5]
+                                    }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                    className="absolute inset-0 bg-accent rounded-full -z-10 blur-xl"
+                                />
+                            </div>
+                            <div className="space-y-4">
+                                <h2 className="text-5xl md:text-7xl font-black tracking-tighter italic uppercase text-white">System Synchronized</h2>
+                                <p className="text-gray-400 text-lg md:text-xl font-medium max-w-md mx-auto italic">Booting your creator command center. Stand by...</p>
+                            </div>
+                            <div className="flex justify-center pt-8">
+                                <Loader2 size={32} className="animate-spin text-accent/50" />
+                            </div>
+                        </motion.div>
                     )}
-                </div>
+                </AnimatePresence>
+            </main>
+
+            {/* Global Branding */}
+            <div className="fixed bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-3 opacity-20 hover:opacity-100 transition-opacity duration-700">
+                <span className="w-10 h-[1px] bg-white" />
+                <span className="text-[10px] font-black uppercase tracking-[0.5em] italic">RiffOS Master Brain</span>
+                <span className="w-10 h-[1px] bg-white" />
             </div>
         </div>
     )

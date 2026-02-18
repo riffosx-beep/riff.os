@@ -39,50 +39,34 @@ export function useDashboardStats() {
             const [
                 ideasCount,
                 scriptsCount,
-                recentIdeas,
-                recentScripts
+                recentItems
             ] = await Promise.all([
                 // Count Ideas
-                supabase.from('ideas').select('*', { count: 'exact', head: true }),
+                supabase.from('vault').select('*', { count: 'exact', head: true }).eq('type', 'idea'),
                 // Count Scripts
-                supabase.from('scripts').select('*', { count: 'exact', head: true }),
-                // Recent Ideas
-                supabase.from('ideas').select('id, title, created_at').order('created_at', { ascending: false }).limit(3),
-                // Recent Scripts
-                supabase.from('scripts').select('id, title, created_at').order('created_at', { ascending: false }).limit(3)
+                supabase.from('vault').select('*', { count: 'exact', head: true }).eq('type', 'script'),
+                // Recent Activity
+                supabase.from('vault').select('id, title, created_at, type, status').order('created_at', { ascending: false }).limit(5)
             ])
 
             // Process Stats
             setStats({
                 totalIdeas: ideasCount.count || 0,
                 totalScripts: scriptsCount.count || 0,
-                totalViews: '2.4K', // Mock for now as performance_data might be empty
+                totalViews: '2.4K',
                 scheduledPosts: 0
             })
 
             // Process Activity
-            const ideas = (recentIdeas.data || []).map(i => ({
-                id: i.id,
-                type: 'idea' as const,
-                title: i.title || 'Untitled Idea',
-                created_at: i.created_at,
-                status: 'Captured'
+            const activity = (recentItems.data || []).map(item => ({
+                id: item.id,
+                type: item.type as any,
+                title: item.title || 'Untitled',
+                created_at: item.created_at,
+                status: item.status || 'Active'
             }))
 
-            const scripts = (recentScripts.data || []).map(s => ({
-                id: s.id,
-                type: 'script' as const,
-                title: s.title || 'Untitled Script',
-                created_at: s.created_at,
-                status: 'Draft'
-            }))
-
-            // Merge and Sort
-            const combined = [...ideas, ...scripts]
-                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                .slice(0, 5)
-
-            setRecentActivity(combined)
+            setRecentActivity(activity)
 
         } catch (error) {
             console.error('Error fetching dashboard stats:', error)

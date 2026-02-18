@@ -26,6 +26,7 @@ import {
     Film,
     Paperclip,
 } from 'lucide-react'
+import VaultItemModal from '@/components/VaultItemModal'
 
 interface VaultAsset {
     url: string
@@ -514,56 +515,13 @@ export default function VaultPage() {
                 </div>
             )}
 
-            {/* View Modal */}
-            {viewItem && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setViewItem(null)}>
-                    <div className="bg-surface border border-border rounded-xl w-full max-w-2xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-h3 text-text-primary">{viewItem.title}</h3>
-                            <button onClick={() => setViewItem(null)} className="btn-icon"><X size={14} /></button>
-                        </div>
-
-                        <p className="text-body text-text-secondary whitespace-pre-wrap mb-6">{viewItem.content}</p>
-
-                        {/* Attachments in View Modal */}
-                        {viewItem.assets && viewItem.assets.length > 0 && (
-                            <div className="mb-6">
-                                <h4 className="text-caption mb-2 font-bold uppercase tracking-wider text-text-primary">Attachments ({viewItem.assets.length})</h4>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                    {viewItem.assets.map((asset, i) => (
-                                        <a key={i} href={asset.url} target="_blank" rel="noopener noreferrer" className="group block bg-surface-2 rounded-lg overflow-hidden border border-border hover:border-indigo-500 transition-colors">
-                                            {asset.type.startsWith('image/') ? (
-                                                <div className="aspect-video relative overflow-hidden bg-black/20">
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={asset.url} alt={asset.name} className="object-cover w-full h-full opacity-90 group-hover:opacity-100 transition-opacity" />
-                                                </div>
-                                            ) : (
-                                                <div className="aspect-video flex items-center justify-center bg-surface-hover">
-                                                    {getFileIcon(asset.type)}
-                                                </div>
-                                            )}
-                                            <div className="p-2">
-                                                <p className="text-xs font-medium text-text-primary truncate">{asset.name}</p>
-                                                <p className="text-[10px] text-text-muted">{(asset.size / 1024 / 1024).toFixed(2)} MB</p>
-                                            </div>
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="flex gap-2 flex-wrap">
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-2 text-text-muted border border-border">{viewItem.type}</span>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-2 text-text-muted border border-border">{viewItem.status}</span>
-                            {viewItem.platform && <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-2 text-text-muted border border-border">{viewItem.platform}</span>}
-                        </div>
-                        <button onClick={() => { copyText(viewItem.content, 'view-copy'); }} className="btn-secondary mt-4 w-full">
-                            {copied === 'view-copy' ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-                            Copy Content
-                        </button>
-                    </div>
-                </div>
-            )}
+            {/* Full Item Editor Modal */}
+            <VaultItemModal
+                item={viewItem}
+                isOpen={!!viewItem}
+                onClose={() => setViewItem(null)}
+                onUpdate={fetchItems}
+            />
         </div>
     )
 }

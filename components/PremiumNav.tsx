@@ -7,45 +7,87 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
     LayoutGrid,
     Sparkles,
-    Layers,
     Calendar,
     Settings,
     LogOut,
     ChevronDown,
-    Zap,
-    Repeat
+    Repeat,
+    Sun,
+    Moon,
+    Search,
+    Bell,
+    GitPullRequest,
+    Database,
+    Target,
+    BookOpen
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import FeedbackModal from './FeedbackModal'
 
 const NAV_ITEMS = [
+    {
+        id: 'dashboard',
+        label: 'HOME',
+        href: '/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        id: 'pipeline',
+        label: 'PIPELINE',
+        href: '/pipeline',
+        icon: GitPullRequest,
+    },
     {
         id: 'ideation',
         label: 'IDEATION',
         href: '/ideation',
         icon: Sparkles,
-        desc: 'Create & Script'
     },
     {
         id: 'repurposing',
         label: 'REPURPOSING',
         href: '/repurposing',
         icon: Repeat,
-        desc: 'Remix & Adapt'
     },
     {
         id: 'scheduling',
         label: 'SCHEDULING',
         href: '/scheduling',
         icon: Calendar,
-        desc: 'Plan & Publish'
     },
+    {
+        id: 'playbook',
+        label: 'PLAYBOOK',
+        href: '/playbook',
+        icon: BookOpen
+    }
 ]
 
 export default function PremiumNav({ userName }: { userName?: string }) {
     const pathname = usePathname()
     const router = useRouter()
     const [userMenuOpen, setUserMenuOpen] = useState(false)
+    const [theme, setTheme] = useState<'light' | 'dark'>('dark')
+
+    React.useEffect(() => {
+        const saved = localStorage.getItem('theme') as 'light' | 'dark'
+        if (saved) {
+            setTheme(saved)
+            document.documentElement.setAttribute('data-theme', saved)
+        } else {
+            const system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+            setTheme(system)
+            document.documentElement.setAttribute('data-theme', system)
+        }
+    }, [])
+
+    const toggleTheme = () => {
+        const newTheme = theme === 'light' ? 'dark' : 'light'
+        setTheme(newTheme)
+        document.documentElement.setAttribute('data-theme', newTheme)
+        localStorage.setItem('theme', newTheme)
+    }
 
     const handleLogout = async () => {
         const supabase = createClient()
@@ -53,90 +95,129 @@ export default function PremiumNav({ userName }: { userName?: string }) {
         router.push('/login')
     }
 
+    const [showFeedback, setShowFeedback] = useState(false)
+
     return (
-        <nav className="w-full bg-surface/50 backdrop-blur-md border-b border-border sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <>
+            <nav className="w-full bg-surface border-b border-border sticky top-0 z-50">
+                <div className="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
 
-                {/* Logo Area */}
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center shadow-[0_0_15px_rgba(124,58,237,0.5)]">
-                        <span className="font-bold text-white text-lg">R</span>
-                    </div>
-                    <span className="font-bold text-lg tracking-tight hidden md:block text-text-primary">
-                        RiffOS.
-                    </span>
-                </div>
+                    {/* Left: Brand & Search */}
+                    <div className="flex items-center gap-6 flex-1">
+                        <Link href="/dashboard" className="flex items-center gap-2 group">
+                            <span className="font-bold text-lg tracking-tight text-text-primary hidden md:block">
+                                RiffOS <span className="ml-1 text-[9px] bg-accent/10 text-accent px-1.5 py-0.5 rounded border border-accent/20 align-top uppercase tracking-widest">Beta</span>
+                            </span>
+                        </Link>
 
-                {/* Centered Pillars */}
-                <div className="flex items-center gap-1 bg-surface-2/50 p-1 rounded-full border border-border">
-                    {NAV_ITEMS.map((item) => {
-                        const isActive = pathname.startsWith(item.href)
-                        return (
-                            <Link
-                                key={item.id}
-                                href={item.href}
-                                className={`
-                                    relative px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-300
-                                    ${isActive ? 'text-white' : 'text-text-secondary hover:text-text-primary'}
-                                `}
-                            >
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="nav-pill"
-                                        className="absolute inset-0 bg-accent rounded-full shadow-[0_0_20px_rgba(124,58,237,0.4)]"
-                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                    />
-                                )}
-                                <span className="relative z-10 flex items-center gap-2 text-xs font-bold tracking-wider">
-                                    <item.icon size={14} />
-                                    {item.label}
-                                </span>
-                            </Link>
-                        )
-                    })}
-                </div>
-
-                {/* User & Settings */}
-                <div className="flex items-center gap-4">
-                    <button className="text-text-muted hover:text-text-primary transition-colors">
-                        <Settings size={18} />
-                    </button>
-
-                    <div className="relative">
-                        <button
-                            onClick={() => setUserMenuOpen(!userMenuOpen)}
-                            className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full border border-border bg-surface hover:bg-surface-hover transition-all"
-                        >
-                            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-accent to-pink-500 flex items-center justify-center text-[10px] text-white font-bold">
-                                {userName?.[0] || 'U'}
+                        <div className="max-w-xs w-full hidden md:block">
+                            <div className="relative group/search">
+                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors group-focus-within/search:text-accent" />
+                                <input
+                                    type="text"
+                                    placeholder="Search RiffOS..."
+                                    className="w-full bg-surface-2/50 border border-border rounded-lg pl-9 pr-12 py-2 text-[11px] text-text-primary focus:outline-none focus:border-accent transition-all placeholder:text-text-muted/50"
+                                />
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                                    <span className="text-[9px] font-bold text-text-muted bg-surface border border-border rounded px-1.5 py-0.5 tracking-tighter opacity-60">⌘K</span>
+                                </div>
                             </div>
-                            <ChevronDown size={14} className="text-text-muted" />
+                        </div>
+                    </div>
+
+                    {/* Center: Main Navigation */}
+                    <div className="flex items-center gap-1 h-full">
+                        {NAV_ITEMS.map((item) => {
+                            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+                            return (
+                                <Link
+                                    key={item.id}
+                                    href={item.href}
+                                    id={`nav-${item.id}`}
+                                    className={`
+                                        relative px-4 h-16 flex items-center gap-2 transition-all duration-300 border-b-2
+                                        ${isActive ? 'text-accent border-accent' : 'text-text-muted border-transparent hover:text-text-primary'}
+                                    `}
+                                >
+                                    <span className="text-[10px] font-bold tracking-[0.1em] uppercase flex items-center gap-2">
+                                        <item.icon size={14} />
+                                        {item.label}
+                                    </span>
+                                </Link>
+                            )
+                        })}
+                    </div>
+
+                    {/* Right side: Tools & Profile */}
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowFeedback(true)}
+                            className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-surface-2 border border-border hover:border-accent/50 rounded-lg text-[10px] font-bold text-text-muted hover:text-text-primary transition-all mr-2"
+                        >
+                            <Sparkles size={12} className="text-accent" />
+                            FEEDBACK
                         </button>
 
-                        <AnimatePresence>
-                            {userMenuOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 10 }}
-                                    className="absolute right-0 top-full mt-2 w-48 bg-surface border border-border rounded-xl shadow-xl overflow-hidden py-1"
-                                >
-                                    <div className="px-4 py-3 border-b border-border">
-                                        <p className="text-xs font-bold text-text-primary">{userName}</p>
-                                        <p className="text-[10px] text-text-muted">Pro Plan</p>
-                                    </div>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="w-full text-left px-4 py-2 text-xs text-danger hover:bg-danger-bg flex items-center gap-2"
+                        <button
+                            onClick={() => window.dispatchEvent(new CustomEvent('start-product-tour'))}
+                            className="w-9 h-9 rounded-lg flex items-center justify-center text-text-muted hover:text-accent hover:bg-accent/5 border border-transparent hover:border-accent/20 transition-all"
+                            title="Restart System Tour"
+                        >
+                            <Target size={18} />
+                        </button>
+
+                        <button
+                            onClick={toggleTheme}
+                            className="w-9 h-9 rounded-lg flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-2 transition-all"
+                            title="Toggle Theme"
+                        >
+                            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                        </button>
+
+                        <button className="w-9 h-9 rounded-lg flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-2 transition-all relative">
+                            <Bell size={18} />
+                            <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-surface shadow-sm" />
+                        </button>
+
+                        <div className="relative ml-2">
+                            <button
+                                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-accent/20 hover:scale-105 transition-transform"
+                            >
+                                {userName?.[0] || 'T'}
+                            </button>
+
+                            <AnimatePresence>
+                                {userMenuOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                        className="absolute right-0 top-full mt-4 w-56 bg-surface border border-border rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden py-1 z-50"
                                     >
-                                        <LogOut size={12} /> Log Out
-                                    </button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                        <div className="px-4 py-3 border-b border-border bg-surface-2/30">
+                                            <p className="text-xs font-bold text-text-primary">{userName || 'Taufiq'}</p>
+                                            <p className="text-[10px] text-text-muted font-medium">RIFFOS MEMBER</p>
+                                        </div>
+                                        <div className="p-1">
+                                            <button className="w-full text-left px-3 py-2 text-[11px] font-medium text-text-secondary hover:bg-surface-2 hover:text-text-primary rounded-lg flex items-center gap-2 transition-colors">
+                                                <Settings size={14} /> Account Settings
+                                            </button>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="w-full text-left px-3 py-2 text-[11px] font-bold text-red-500 hover:bg-red-500/5 rounded-lg flex items-center gap-2 transition-colors"
+                                            >
+                                                <LogOut size={14} /> Log Out System
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </nav>
+            </nav>
+            <FeedbackModal isOpen={showFeedback} onClose={() => setShowFeedback(false)} />
+        </>
     )
 }

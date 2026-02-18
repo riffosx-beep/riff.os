@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Flame, Shield, TrendingUp } from 'lucide-react'
+import { Flame, Shield, TrendingUp, Calendar } from 'lucide-react'
 
 interface StreakDisplayProps {
     currentStreak: number
@@ -11,66 +11,64 @@ interface StreakDisplayProps {
 }
 
 export default function StreakDisplay({ currentStreak, bestStreak, heatmapData, hasStreakFreeze = false }: StreakDisplayProps) {
-    const streakLevel = currentStreak >= 30 ? 'Legendary' : currentStreak >= 14 ? 'On Fire' : currentStreak >= 7 ? 'Building' : currentStreak >= 1 ? 'Started' : 'Dead'
-    const streakLevelColor = currentStreak >= 30 ? 'text-amber-500' : currentStreak >= 14 ? 'text-orange-500' : currentStreak >= 7 ? 'text-blue-500' : 'text-text-muted'
-
     return (
-        <div className="glass-card overflow-hidden">
-            {/* Top section: Streak Counter */}
-            <div className="p-6 flex items-center gap-6">
-                {/* Flame + Number */}
-                <div className="flex items-center gap-4">
-                    <div className="streak-flame">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 via-amber-500 to-red-500 flex items-center justify-center shadow-lg relative">
-                            <Flame size={26} className="text-white" strokeWidth={2.5} />
-                        </div>
-                    </div>
-                    <div>
-                        <div className="streak-counter">{currentStreak}</div>
-                        <p className="text-xs text-text-muted font-medium -mt-0.5">day streak</p>
-                    </div>
+        <div className="flex flex-col lg:flex-row items-center gap-10">
+            {/* Flame + Counter */}
+            <div className="flex items-center gap-5 shrink-0">
+                <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl transition-all duration-500 ${currentStreak > 0
+                        ? 'bg-gradient-to-br from-orange-400 to-red-600 shadow-orange-500/40 animate-pulse'
+                        : 'bg-surface-2 border border-border grayscale'
+                    }`}>
+                    <Flame size={32} className={`text-white ${currentStreak > 0 ? 'fill-white' : ''}`} />
                 </div>
-
-                {/* Divider */}
-                <div className="w-px h-12 bg-border" />
-
-                {/* Stats */}
-                <div className="flex-1 grid grid-cols-2 gap-4">
-                    <div>
-                        <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">Best Streak</p>
-                        <p className="text-lg font-bold text-text-primary flex items-center gap-1.5">
-                            <TrendingUp size={14} className="text-accent" />
-                            {bestStreak} days
-                        </p>
+                <div>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-6xl font-black text-text-primary tracking-tighter leading-none">
+                            {currentStreak}
+                        </span>
                     </div>
-                    <div>
-                        <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">Status</p>
-                        <p className={`text-lg font-bold ${streakLevelColor} flex items-center gap-1.5`}>
-                            {hasStreakFreeze && <Shield size={14} className="text-accent" />}
-                            {streakLevel}
-                        </p>
-                    </div>
+                    <p className="text-[10px] text-text-muted font-black uppercase tracking-[0.2em] mt-1">day streak</p>
                 </div>
-
-                {/* Streak Freeze Badge */}
-                {hasStreakFreeze && (
-                    <div className="badge badge-purple text-xs py-1 px-3 flex items-center gap-1.5">
-                        <Shield size={12} />
-                        Freeze Available
-                    </div>
-                )}
             </div>
 
-            {/* Heatmap Row */}
-            <div className="px-6 pb-5">
-                <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider mb-2">Last 30 Days</p>
-                <div className="grid grid-cols-30 gap-[3px]" style={{ gridTemplateColumns: 'repeat(30, 1fr)' }}>
+            {/* Stats Column */}
+            <div className="flex items-center gap-8 pl-8 border-l border-border/50 shrink-0">
+                <div className="flex flex-col">
+                    <span className="text-[9px] font-bold text-text-muted uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                        <TrendingUp size={10} /> Personal Best
+                    </span>
+                    <span className="text-lg font-bold text-text-primary tabular-nums">{bestStreak} days</span>
+                </div>
+
+                <div className="flex flex-col">
+                    <span className="text-[9px] font-bold text-text-muted uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                        <Calendar size={10} /> Status
+                    </span>
+                    <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full border-2 ${currentStreak > 0 ? 'bg-orange-500 border-orange-200' : 'border-text-muted'}`} />
+                        <span className={`text-xs font-bold uppercase tracking-wider ${currentStreak > 0 ? 'text-orange-500' : 'text-text-muted'}`}>
+                            {currentStreak > 0 ? 'ON FIRE' : 'INACTIVE'}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Heatmap Section */}
+            <div className="flex-1 flex flex-col pl-4 w-full">
+                <div className="flex items-center justify-between mb-3">
+                    <span className="text-[9px] font-bold text-text-muted uppercase tracking-widest">Consistency Heatmap</span>
+                    <span className="text-[8px] font-medium text-text-muted uppercase tracking-widest">Last 14 Days</span>
+                </div>
+                <div className="flex gap-2 w-full justify-between">
                     {heatmapData.map((status, i) => (
-                        <div
-                            key={i}
-                            className={`streak-heatmap-cell ${status}`}
-                            title={`Day ${i + 1}: ${status}`}
-                        />
+                        <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                            <div
+                                className={`w-full aspect-square rounded-lg border transition-all duration-300 ${status === 'posted'
+                                        ? 'bg-accent border-accent shadow-lg shadow-accent/20'
+                                        : 'bg-surface-2 border-border opacity-30 shadow-inner'
+                                    }`}
+                            />
+                        </div>
                     ))}
                 </div>
             </div>
