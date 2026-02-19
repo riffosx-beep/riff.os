@@ -124,14 +124,15 @@ Return a JSON object:
       // PILLAR 2: GENERATOR — Content Ideas (Enhanced)
       // ═══════════════════════════════════════════════════════
       case 'ideas': {
+        const personalization = user.user_metadata?.personalization || {}
         const {
           platform,
           goal,
-          niche = 'coaching/consulting',
+          niche = personalization.niche || 'coaching/consulting',
           audienceTemp = 'mixed',
           contentPillars = [],
           count = 10,
-          avoidTopics = '',
+          avoidTopics = personalization.topics_to_avoid || '',
           specificAngle = '',
         } = params
 
@@ -149,8 +150,15 @@ Return a JSON object:
 
         const systemPrompt = `You are an elite content strategist who has generated $50M+ in revenue for coaches, consultants, and founder-led brands through content alone. You don't create "social media posts" — you engineer conversion machines.
 
-Your specialty: ${niche}. Platform: ${platform}. Goal: ${goal}.
+Your specialty: ${niche}. Platform: ${platform}. Goal: ${goal || personalization.growth_goal}.
 ${audienceContext}${pillarsContext}${voiceContext}
+
+DEEP PERSONALIZATION CONTEXT:
+- Creator's Target Audience: ${personalization.audience_description || 'Broad market'}
+- Current Reach / Authority Level: ${personalization.current_reach || 'Building authority'}
+- Preferred Content Style: ${personalization.content_style || 'Authoritative'}
+- Winning Formats: ${personalization.winning_formats || 'N/A'}
+
 ${HUMAN_STYLE_GUIDE}
 
 ${avoidTopics ? `AVOID these topics/angles (user is tired of them): ${avoidTopics}` : ''}
@@ -195,8 +203,9 @@ CRITICAL RULES:
       }
 
       case 'script': {
+        const personalization = user.user_metadata?.personalization || {}
         const {
-          tone = 'professional',
+          tone = personalization.content_style || 'professional',
           platform,
           length = 'short_form',
         } = params
@@ -256,18 +265,18 @@ SECTION 2: CREATOR DNA (INJECT PER USER)
 
 CREATOR PROFILE:
 - Name: ${user.user_metadata?.full_name || 'The Creator'}
-- Niche: ${params.niche || 'Coaching/Consulting'}
-- Sub-niche / Unique Angle: ${params.angle || 'High-ticket offers'}
-- Offer (what they sell): ${params.offer || 'Consulting programs'}
-- Target Audience: ${params.targetAudience || 'Founders and CEOs'}
-- Audience's #1 Pain: ${params.audiencePain || 'Stagnant growth'}
-- Audience's #1 Desire: ${params.audienceDesire || 'Predictable revenue'}
-- Creator's Tone: ${tone}
+- Niche: ${personalization.niche || params.niche || 'Coaching/Consulting'}
+- Detailed Audience: ${personalization.audience_description || params.targetAudience || 'General Audience'}
+- Current Status/Reach: ${personalization.current_reach || 'Building'}
+- Growth Goal: ${personalization.growth_goal || params.goal || 'Authority & Leads'}
+- Creator's Tone/Style: ${personalization.content_style || tone}
+- Winning Formats: ${personalization.winning_formats || 'N/A'}
 - Platform: ${platform}
 - Content Goal: ${params.goal || 'Leads and Authority'}
 - Past posts that worked: ${params.winningPosts || 'N/A'}
 - Past posts that flopped: ${params.failedPosts || 'N/A'}
 - Creator's POV / Contrarian Belief: ${params.contrarianBelief || 'Most advice is generic trash'}
+${personalization.topics_to_avoid ? `- TOPICS TO AVOID: ${personalization.topics_to_avoid}` : ''}
 
 MEMORY DIRECTIVE:
 Treat this Creator DNA as sacred context. Every word you generate 
