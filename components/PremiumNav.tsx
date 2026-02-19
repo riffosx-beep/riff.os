@@ -199,7 +199,13 @@ export default function PremiumNav({ userName }: { userName?: string }) {
                                             <p className="text-[10px] text-text-muted font-medium">RIFFOS MEMBER</p>
                                         </div>
                                         <div className="p-1">
-                                            <button className="w-full text-left px-3 py-2 text-[11px] font-medium text-text-secondary hover:bg-surface-2 hover:text-text-primary rounded-lg flex items-center gap-2 transition-colors">
+                                            <button
+                                                onClick={() => {
+                                                    router.push('/settings')
+                                                    setUserMenuOpen(false)
+                                                }}
+                                                className="w-full text-left px-3 py-2 text-[11px] font-medium text-text-secondary hover:bg-surface-2 hover:text-text-primary rounded-lg flex items-center gap-2 transition-colors"
+                                            >
                                                 <Settings size={14} /> Account Settings
                                             </button>
                                             <button
