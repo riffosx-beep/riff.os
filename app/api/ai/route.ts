@@ -586,7 +586,8 @@ ${HUMAN_STYLE_GUIDE}
 
 ${voiceContext}`
 
-        const userPrompt = `Create a ${length} ${contentType} ${platform} script about: "${hook}". Tone: ${tone}. Generate a FULL, complete script ready for recording/posting. ${length === '10min' ? 'Make it a comprehensive deep dive.' : ''}`
+        const { hook, contentType } = params
+        const userPrompt = `Create a ${length} ${contentType || 'video'} ${platform} script about: "${hook}". Tone: ${tone}. Generate a FULL, complete script ready for recording/posting. ${length === '10min' ? 'Make it a comprehensive deep dive.' : ''}`
 
         const result = await generateAIResponse(systemPrompt, userPrompt)
         let script = safeParseJSON(result)
@@ -604,7 +605,7 @@ ${voiceContext}`
         // Save
         const { error: insertError } = await supabase.from('scripts').insert({
           user_id: user.id,
-          title: script.title || hook.substring(0, 100),
+          title: script.title || (hook ? hook.substring(0, 100) : 'Untitled Script'),
           hook: typeof script.hooks === 'object' ? script.hooks[0]?.text : script.hook,
           content: script.full_script || script.body, // Use 'content' to match schema
           cta: script.cta,
