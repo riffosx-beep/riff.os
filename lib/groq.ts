@@ -15,7 +15,7 @@ export async function generateAIResponse(
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            model: 'deepseek-r1-distill-llama-70b',
+            model: 'openai/gpt-oss-120b',
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userPrompt },
