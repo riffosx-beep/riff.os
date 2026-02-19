@@ -2,6 +2,18 @@ import { createClient } from '@/lib/supabase/server'
 import { generateAIResponse } from '@/lib/groq'
 import { NextRequest, NextResponse } from 'next/server'
 
+const HUMAN_STYLE_GUIDE = `
+# HUMAN-CENTRIC CONTENT PROTOCOL (ANTI-ROBOTIC)
+1. AVOID AI-ISMS: Never use "unleash", "harness", "tapestry", "dive deep", "landscape", "synergy", "elevate", "game-changer", "transformative", or "fast-paced".
+2. VARY SENTENCE RHYTHM: Mix short (2-3 word) punchy sentences with longer, descriptive ones. Use fragments for emphasis. Like this.
+3. USE VIVID ANALOGIES: Avoid "climbing mountains". Use unique, visceral metaphors (e.g., "it's like trying to fix a jet engine while the plane is diving").
+4. BE CONTRARIAN: Don't just give safe advice. Challenge a widely held belief in the niche with a "spicy" take.
+5. NO REPETITIVE STRUCTURES: Don't always lead with "3 tips for X". Lead with a sudden story, a weird observation, or a specific failure.
+6. SHOW, DON'T TELL: Instead of "This is important", describe the physical consequence of ignoring it.
+7. SOUND LIKE A PERSON: Use "I", "me", and "my". Share a micro-failure or a specific, human detail that adds credibility.
+8. BREAK THE "LINKEDIN GURU" MOLD: If it sounds like a post-2022 Growth Hacker wrote it, it's a failure. Write like a human who actually does the work.
+`;
+
 function safeParseJSON(raw: string) {
   try {
     return JSON.parse(raw)
@@ -139,6 +151,7 @@ Return a JSON object:
 
 Your specialty: ${niche}. Platform: ${platform}. Goal: ${goal}.
 ${audienceContext}${pillarsContext}${voiceContext}
+${HUMAN_STYLE_GUIDE}
 
 ${avoidTopics ? `AVOID these topics/angles (user is tired of them): ${avoidTopics}` : ''}
 ${specificAngle ? `User wants ideas around this specific angle: ${specificAngle}` : ''}
@@ -162,7 +175,6 @@ Return JSON:
     }
   ]
 }
-
 CRITICAL RULES:
 - NO hooks starting with "How to" unless it's a specific numbered variation. Generic "How to" hooks get 70% less engagement.
 - NO vague advice. Every idea must be specific enough that the reader feels "this person knows MY situation"
@@ -173,51 +185,27 @@ CRITICAL RULES:
         const userPrompt = `Generate ${count} ${platform} content ideas for a ${niche} creator. Goal: ${goal}. ${specificAngle ? `Focus: ${specificAngle}.` : ''} Make each idea so specific that generic AI could never produce it. I want ideas that make me think "damn, this AI actually understands my business."`
 
         const result = await generateAIResponse(systemPrompt, userPrompt)
-        let parsed = safeParseJSON(result)
-        if (!parsed) return NextResponse.json({ error: 'Failed to parse ideas' }, { status: 500 })
-        const ideas = parsed.ideas || parsed
-        if (!Array.isArray(ideas)) return NextResponse.json({ error: 'Invalid format' }, { status: 500 })
+        const parsed = safeParseJSON(result)
 
-        // Save to DB
-        const ideasToInsert = ideas.map((idea: Record<string, string>) => ({
-          user_id: user.id,
-          hook: idea.hook,
-          angle: idea.angle,
-          cta: idea.cta,
-          category: idea.category,
-          goal: idea.goal || goal,
-          platform: idea.platform || platform,
-        }))
+        if (!parsed) {
+          return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 })
+        }
 
-        const { error: insertError } = await supabase.from('content_ideas').insert(ideasToInsert)
-        if (insertError) console.error('Insert error:', insertError)
-
-        return NextResponse.json({ ideas })
+        return NextResponse.json(parsed)
       }
 
-      // ═══════════════════════════════════════════════════════
-      // PILLAR 2: GENERATOR — Script Builder (Advanced)
-      // ═══════════════════════════════════════════════════════
       case 'script': {
         const {
-          hook,
-          platform,
           tone = 'professional',
-          length = '60s',
-          contentType = 'short_form',
-          includeHumor = false,
-          includeData = true,
-          includeStorytelling = true,
-          framework = '',
-          targetAudience = 'coaches and consultants',
-          offer = '',
+          platform,
+          length = 'short_form',
         } = params
 
         const lengthGuide: Record<string, string> = {
-          '30s': '60-90 words. Hook → transition → one primary value bomb → punchy CTA.',
-          '60s': '120-180 words. Hook → open loop → value-added body (2-3 points) → authority/social proof → direct CTA.',
-          '120s': '300-400 words. Hook → open loop → context → deep value breakdown → mini-story → objection handling → multilayered CTA.',
-          '10min': '1500-2000 words. COMPLETE YouTube Video Structure. Intro (Hook+Qualified Promise) → Titles Sequence → Context/Problem → The Mechanism (Core Concept) → Step-by-Step Breakdown (3-5 Steps) → Common Mistakes → Case Study/Example → Conclusion → CTA.',
+          'short_form': '30-90 seconds (100-220 words). High density, no fluff. Hook -> Agitate -> Solution -> CTA.',
+          'long_form': '8-15 minutes (1500-2500 words). Deep dive, storytelling, multiple loops. Intro -> Context -> Core Content -> Implementation -> Conclusion.',
+          'thread': '6-12 tweets. punchy, scannable, one idea per tweet. Hook -> Context -> Points -> Summary -> CTA.',
+          'linkedin_post': '150-300 words. Mobile-optimized, line breaks, strong opening. Hook -> Story/Insight -> Lesson -> Engagement Question.',
         }
 
         const typeGuide: Record<string, string> = {
@@ -584,6 +572,8 @@ Return complete, production-ready content. Structure JSON:
   "cta": "The specific call to action used",
   "caption_suggestion": "Social media description"
 }
+
+${HUMAN_STYLE_GUIDE}
 
 ${voiceContext}`
 

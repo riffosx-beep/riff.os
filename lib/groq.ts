@@ -15,12 +15,12 @@ export async function generateAIResponse(
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
+            model: 'deepseek-r1-distill-llama-70b',
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userPrompt },
             ],
-            temperature: 0.75,
+            temperature: 0.8,
             max_tokens: 8000,
             response_format: { type: 'json_object' },
         }),
