@@ -19,7 +19,8 @@ import {
     GitPullRequest,
     Database,
     Target,
-    BookOpen
+    BookOpen,
+    Zap
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
