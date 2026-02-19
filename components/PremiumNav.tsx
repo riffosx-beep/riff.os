@@ -58,9 +58,9 @@ const NAV_ITEMS = [
     },
     {
         id: 'playbook',
-        label: 'PLAYBOOK',
+        label: 'PERSONALIZATION',
         href: '/playbook',
-        icon: BookOpen
+        icon: Zap
     }
 ]
 
@@ -142,6 +142,9 @@ export default function PremiumNav({ userName }: { userName?: string }) {
                                     <span className="text-[10px] font-bold tracking-[0.1em] uppercase flex items-center gap-2">
                                         <item.icon size={14} />
                                         {item.label}
+                                        {item.id === 'playbook' && (
+                                            <span className="ml-1 text-[8px] bg-accent text-white px-1.5 py-0.5 rounded-full font-black animate-pulse">CORE</span>
+                                        )}
                                     </span>
                                 </Link>
                             )
