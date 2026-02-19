@@ -53,7 +53,7 @@ export function useDashboardStats() {
             setStats({
                 totalIdeas: ideasCount.count || 0,
                 totalScripts: scriptsCount.count || 0,
-                totalViews: '2.4K',
+                totalViews: 'DNA SYNC',
                 scheduledPosts: 0
             })
 

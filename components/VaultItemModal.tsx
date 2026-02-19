@@ -208,7 +208,7 @@ export default function VaultItemModal({ item, isOpen, onClose, onUpdate }: Vaul
                 body: JSON.stringify({
                     type: 'refine-script',
                     script: editedContent,
-                    feedback: 'Make this more punchy and viral-ready',
+                    feedback: 'Make this more punchy and impactful',
                     platform: item.platform || 'LinkedIn',
                     contentType: item.type || 'post'
                 })

@@ -178,10 +178,10 @@ export default function DashboardPage() {
                     >
                         <div className="flex items-center gap-3">
                             <Zap size={16} className="text-danger fill-danger" />
-                            <p className="text-xs font-medium text-danger">Momentum Warning: {recoveryDays} days missed.</p>
+                            <p className="text-xs font-medium text-danger">Consistency Gap: {recoveryDays} days since last post.</p>
                         </div>
                         <Link href="/playbook" className="w-full md:w-auto text-center px-4 py-1.5 bg-danger text-white rounded-lg text-[9px] font-bold uppercase tracking-widest hover:bg-danger/90 transition-colors">
-                            Recover Now
+                            Fix DNA & Post
                         </Link>
                     </motion.div>
                 )}
@@ -318,10 +318,10 @@ export default function DashboardPage() {
                             <Zap size={60} />
                         </div>
                         <h4 className="font-bold text-xs mb-2 flex items-center gap-2">
-                            <Flame size={14} className="fill-white" /> Insight
+                            <Flame size={14} className="fill-white" /> System Insight
                         </h4>
                         <p className="text-[10px] leading-relaxed opacity-90 font-medium">
-                            LinkedIn engagement peaks on Tuesdays. Focus 'Founder-led' scripts for that window.
+                            Your Creator DNA is the engine. The more specific your 'Personalization' settings, the higher the impact of your generated scripts.
                         </p>
                     </div>
                 </div>

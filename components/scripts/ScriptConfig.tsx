@@ -47,7 +47,7 @@ export default function ScriptConfig({ config, setConfig, onGenerate, isGenerati
                     <Sparkles size={18} className="text-accent" />
                     Build Your Script
                 </h2>
-                <p className="text-xs text-text-muted">Configure your inputs to generate viral content.</p>
+                <p className="text-xs text-text-muted">Configure your inputs to generate high-impact content.</p>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-8">

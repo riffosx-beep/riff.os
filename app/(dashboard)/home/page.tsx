@@ -84,10 +84,10 @@ export default function HomePage() {
                     delay={0.2}
                 />
                 <StatsCard
-                    label="Total Reach"
+                    label="Projected Reach"
                     value={loading ? '-' : stats.totalViews}
                     icon={BarChart3}
-                    trend="+12% growth"
+                    trend="Based on DNA"
                     color="text-emerald-400"
                     gradient="from-emerald-400/20 to-transparent"
                     delay={0.3}
@@ -112,7 +112,7 @@ export default function HomePage() {
                             />
                             <ActionCard
                                 title="Writer AI"
-                                desc="Draft viral scripts"
+                                desc="Draft high-impact scripts"
                                 icon={FileText}
                                 href="/scripts"
                                 color="bg-blue-500"

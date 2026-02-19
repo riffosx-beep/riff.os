@@ -69,7 +69,7 @@ export default function ScriptEditor({ scriptData, onRegenerate, onRefine, isGen
                     <Zap size={24} />
                 </div>
                 <h3 className="text-lg font-bold text-text-secondary">Ready to build</h3>
-                <p className="max-w-xs text-sm mt-2">Configure your inputs on the left and hit generate to see your viral script here.</p>
+                <p className="max-w-xs text-sm mt-2">Configure your inputs on the left and hit generate to see your localized, high-impact script here.</p>
             </div>
         )
     }
@@ -215,12 +215,11 @@ export default function ScriptEditor({ scriptData, onRegenerate, onRefine, isGen
                             <p className="text-[10px] text-text-muted italic">Pro tip: You can ask the AI to change the tone, shorten the body, or add specific details.</p>
                         </div>
 
-                        {/* Viral Score */}
                         <div className="bg-surface border border-border rounded-xl p-5 space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="font-bold flex items-center gap-2">
                                     <TrendingUp size={18} className="text-green-500" />
-                                    Viral Score
+                                    Strategic Impact
                                 </h3>
                                 <span className="text-2xl font-black text-green-500">{scriptData.score}/100</span>
                             </div>
@@ -249,7 +248,7 @@ export default function ScriptEditor({ scriptData, onRegenerate, onRefine, isGen
                     <div className="space-y-6 animate-enter">
                         <div className="bg-surface border border-border rounded-xl p-6 text-center space-y-4">
                             <h3 className="font-bold">Hook Optimizer</h3>
-                            <p className="text-sm text-text-muted">A/B test your hooks against millions of viral data points.</p>
+                            <p className="text-sm text-text-muted">A/B test your hooks against your Creator DNA and audience goals.</p>
 
                             <div className="p-4 bg-surface-2 rounded-lg text-left text-sm border border-border">
                                 <p className="font-mono text-xs text-text-muted mb-2">CURRENT HOOK:</p>

@@ -26,7 +26,7 @@ const STEPS = [
         title: 'The Mission Control',
         subtitle: 'What is your #1 content bottleneck right now?',
         options: [
-            { id: 'ideas', label: 'Generating viral ideas', icon: Zap },
+            { id: 'ideas', label: 'Generating high-impact ideas', icon: Zap },
             { id: 'scripts', label: 'Writing high-quality scripts', icon: Sparkles },
             { id: 'consistency', label: 'Maintaining a daily posting habit', icon: Target },
             { id: 'distribution', label: 'Repurposing across platforms', icon: Users }

@@ -50,12 +50,12 @@ export default function ScriptsPage() {
             // Handle hooks which might be an array of objects or strings in api/ai response
             const hooks = Array.isArray(result.hooks)
                 ? result.hooks.map((h: any) => typeof h === 'string' ? h : h.text)
-                : [result.hook || 'Viral Hook Concept']
+                : [result.hook || 'High Impact Hook Concept']
 
             setScriptData({
                 hooks: hooks,
                 content: formattedContent,
-                score: result.viral_score || 85,
+                score: result.impact_score || 85,
                 raw: result
             })
         } catch (err) {
@@ -124,7 +124,7 @@ export default function ScriptsPage() {
             setScriptData({
                 ...scriptData,
                 content: data.refined.refined_script,
-                score: data.refined.viral_score || scriptData.score
+                score: data.refined.impact_score || scriptData.score
             })
         } catch (err) {
             console.error(err)

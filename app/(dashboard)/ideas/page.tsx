@@ -22,7 +22,7 @@ type GeneratedIdea = {
     suggested_cta: string
     emotional_trigger: string
     category: string
-    viral_score?: number
+    impact_score?: number
 }
 
 export default function IdeasPage() {
@@ -78,7 +78,7 @@ export default function IdeasPage() {
                 suggested_cta: idea.cta || '',
                 emotional_trigger: idea.target_audience_segment || 'General', // Fallback
                 category: idea.category,
-                viral_score: idea.viral_score
+                impact_score: idea.impact_score
             }))
 
             setGeneratedIdeas(mappedIdeas)
@@ -117,7 +117,7 @@ Category: ${idea.category}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight mb-1">Ideation Engine</h1>
-                        <p className="text-xs text-text-muted">Generate viral concepts or capture fleeting thoughts.</p>
+                        <p className="text-xs text-text-muted">Generate high-impact concepts or capture fleeting thoughts.</p>
                     </div>
                 </div>
 
@@ -214,7 +214,7 @@ Category: ${idea.category}
                                 <div>
                                     <label className="text-caption mb-1 block">Goal</label>
                                     <select value={genInput.goal} onChange={e => setGenInput({ ...genInput, goal: e.target.value })} className="input">
-                                        {['Authority / Trust', 'Leads / Sales', 'Engagement / Viral', 'Education', 'Personal Story', 'Objection Handling'].map(g => <option key={g} value={g}>{g}</option>)}
+                                        {['Authority / Trust', 'Leads / Sales', 'Education', 'Personal Story', 'Objection Handling'].map(g => <option key={g} value={g}>{g}</option>)}
                                     </select>
                                 </div>
 
@@ -285,7 +285,7 @@ Category: ${idea.category}
                                 <div className="h-full flex flex-col items-center justify-center text-center p-12 border border-dashed border-border rounded-xl opacity-50">
                                     <Sparkles size={48} className="text-text-muted mb-4" />
                                     <h3 className="text-lg font-medium text-text-primary">Ready to Ideate</h3>
-                                    <p className="text-sm text-text-muted max-w-sm mt-2">Configure your parameters on the left and let the AI generate high-viral potential ideas for you.</p>
+                                    <p className="text-sm text-text-muted max-w-sm mt-2">Configure your parameters on the left and let the AI generate high-impact ideas for you.</p>
                                 </div>
                             )}
                         </div>

@@ -175,7 +175,7 @@ Return JSON:
       "structure": "Recommended content structure: listicle / story / framework / hot-take / tutorial / before-after / case-study",
       "cta": "Specific, conversion-focused CTA. Must include the exact word/phrase to DM or comment.",
       "category": "authority / pain-point / objection-handling / case-study / lead-magnet / behind-the-scenes / polarizing / educational",
-      "viral_score": 8,
+      "impact_score": 8,
       "difficulty": "easy / medium / hard",
       "why_it_works": "1-2 sentences explaining the psychology behind why this will perform. Reference specific triggers.",
       "target_audience_segment": "Which specific segment of the audience this speaks to",
@@ -187,7 +187,7 @@ CRITICAL RULES:
 - NO hooks starting with "How to" unless it's a specific numbered variation. Generic "How to" hooks get 70% less engagement.
 - NO vague advice. Every idea must be specific enough that the reader feels "this person knows MY situation"
 - Each idea must use a DIFFERENT hook technique: question, bold claim, story opener, specific number, pattern interrupt, first person failure, counterintuitive take, name drop, or "stop doing X"
-- viral_score must be HONEST. Most content is 4-6. Only truly exceptional hooks get 8+.
+- impact_score must be HONEST. Most content is 4-6. Only truly exceptional hooks get 8+.
 - difficulty: easy = can create in 15min, medium = needs 30min research, hard = requires data/interviews/case studies`
 
         const userPrompt = `Generate ${count} ${platform} content ideas for a ${niche} creator. Goal: ${goal}. ${specificAngle ? `Focus: ${specificAngle}.` : ''} Make each idea so specific that generic AI could never produce it. I want ideas that make me think "damn, this AI actually understands my business."`
@@ -250,9 +250,9 @@ You have internalized:
   gaps, open loops)
 - Platform-specific algorithm psychology (3-second retention on 
   TikTok/Reels, watch time on YouTube, dwell time on LinkedIn)
-- Gary Vee's volume + distribution doctrine
+- Master distributor doctrine
 - The PAS, AIDA, QUEST, and ENEMY copywriting frameworks
-- Viral content architecture from 10M+ performing posts
+- High-performing content architecture from 10M+ views
 
 YOUR PRIME DIRECTIVE:
 Generate content that feels like it was written by THIS specific 
@@ -576,7 +576,7 @@ Return complete, production-ready content. Structure JSON:
     ... (3 total)
   ],
   "full_script": "THE COMPLETE SCRIPT. MUST COMPLY WITH ALL SECTIONS ABOVE AND INCLUDE [MARKERS].",
-  "viral_score": 85,
+  "impact_score": 85,
   "estimated_duration": "${length}",
   "cta": "The specific call to action used",
   "caption_suggestion": "Social media description"
@@ -632,7 +632,7 @@ Return JSON with the modified script:
 {
   "refined_script": "The full updated script",
   "changes_made": "Brief summary of what was changed",
-  "viral_score": 88
+  "impact_score": 88
 }
 
 ${voiceContext}`
@@ -753,7 +753,7 @@ Return JSON:
       "template": "Fill-in-the-blank template the user can use immediately",
       "applied_example": "The user's raw idea written using this framework — complete, ready to post",
       "why_this_works": "2-3 sentences: Why this framework + this idea + this platform = high performance",
-      "expected_engagement": "Predicted engagement level: low/medium/high/viral",
+      "expected_engagement": "Predicted engagement level: low/medium/high/impactful",
       "best_for": "What type of content goal this excels at"
     }
   ],
@@ -809,7 +809,7 @@ Return JSON:
       "cta": "Platform-appropriate CTA",
       "platform": "${platform}",
       "teaser_for_next": "How this post teases or connects to the next one",
-      "predicted_engagement": "low/medium/high/viral",
+      "predicted_engagement": "low/medium/high/impactful",
       "predicted_conversions": "none/soft-leads/direct-leads/sales",
       "best_time_to_post": "Recommended day/time"
     }
@@ -987,7 +987,7 @@ Perform a complete content autopsy.
 Return JSON:
 {
   "autopsy": {
-    "verdict": "VIRAL / HIGH-PERFORMING / AVERAGE / UNDERPERFORMING — and WHY in one sentence",
+    "verdict": "HIGH-IMPACT / HIGH-PERFORMING / AVERAGE / UNDERPERFORMING — and WHY in one sentence",
     "hook_analysis": {
       "technique": "What hook technique was used (pattern interrupt, curiosity gap, etc.)",
       "effectiveness": 8,
@@ -1046,7 +1046,7 @@ Predict how this content will perform BEFORE it's posted.
 Return JSON:
 {
   "prediction": {
-    "virality_score": 72,
+    "impact_score": 72,
     "confidence": "high / medium / low",
     "predicted_reach_multiplier": "2.5x your average",
     "predicted_engagement_rate": "4.2%",
@@ -1367,7 +1367,7 @@ Return JSON:
     "topic": "The main topic (1-3 words)",
     "format": "best content format: tweet / thread / reel / carousel / long-form / story / tutorial",
     "urgency": "post-now / this-week / backlog / evergreen",
-    "viral_potential": "low / medium / high / viral",
+    "impact_potential": "low / medium / high / impactful",
     "goal": "engagement / leads / authority / sales / community",
     "difficulty": "quick-win / medium-effort / deep-work",
     "emotion": "Primary emotion this would trigger"

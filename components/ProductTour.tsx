@@ -1,19 +1,19 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     ChevronRight,
     X,
     Sparkles,
     Zap,
-    Target,
     Layout,
     Calendar,
     GitPullRequest,
     CheckCircle2,
     ArrowRight
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface TourStep {
     targetId: string
@@ -21,67 +21,65 @@ interface TourStep {
     content: string
     icon: any
     position?: 'bottom' | 'top' | 'left' | 'right' | 'center'
+    path?: string
 }
 
 const TOUR_STEPS: TourStep[] = [
     {
         targetId: 'welcome',
         title: 'Welcome to RiffOS',
-        content: 'Your content command center is now online. Let us take you through the core engine.',
+        content: 'Your AI command center is online. To get results that actually sound like you, we need to set up your core engine first.',
         icon: Sparkles,
-        position: 'center'
+        position: 'center',
+        path: '/dashboard'
     },
     {
-        targetId: 'nav-pipeline',
-        title: 'The Pipeline',
-        content: 'Channel your content flow. Move ideas to scripts and scripts to distribution seamlessly.',
-        icon: GitPullRequest,
-        position: 'bottom'
+        targetId: 'nav-playbook',
+        title: '1. Set Your DNA',
+        content: 'The MOST important step. Define your niche, audience, and voice here. This data guides EVERY response the AI gives you.',
+        icon: Zap,
+        position: 'bottom',
+        path: '/playbook'
     },
     {
         targetId: 'nav-ideation',
-        title: 'Content Studio',
-        content: 'Where raw ideas become viral scripts using the RiffOS Master Brain.',
+        title: '2. Generate Ideas',
+        content: 'Once your DNA is set, use the Content Studio to generate high-impact ideas perfectly tailored to your goals.',
         icon: Sparkles,
-        position: 'bottom'
+        position: 'bottom',
+        path: '/ideation'
+    },
+    {
+        targetId: 'nav-pipeline',
+        title: '3. Build Your Script',
+        content: 'Take your best ideas and turn them into full, ready-to-record scripts inside the Pipeline.',
+        icon: GitPullRequest,
+        position: 'bottom',
+        path: '/pipeline'
     },
     {
         targetId: 'nav-scheduling',
-        title: 'Master Calendar',
-        content: 'Plan and automate your distributions across LinkedIn, X, and beyond.',
+        title: '4. Plan Distribution',
+        content: 'Finally, schedule your content to the Master Calendar to build your consistent presence.',
         icon: Calendar,
-        position: 'bottom'
-    },
-    {
-        targetId: 'dashboard-streak',
-        title: 'Consistency Engine',
-        content: 'Your day streak and heatmap. Post daily to keep the fire burning.',
-        icon: Zap,
-        position: 'bottom'
-    },
-    {
-        targetId: 'dashboard-stats',
-        title: 'Live Intelligence',
-        content: 'Real-time analytics of your content bank and scheduled distributions.',
-        icon: Target,
-        position: 'top'
+        position: 'bottom',
+        path: '/scheduling'
     }
 ]
 
 export default function ProductTour() {
+    const router = useRouter()
     const [active, setActive] = useState(false)
     const [currentStep, setCurrentStep] = useState(0)
     const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, height: 0 })
     const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
 
     useEffect(() => {
-        // Check if first time
         const completed = localStorage.getItem('riffos_tour_completed')
         if (!completed) {
             setTimeout(() => setActive(true), 1500)
         }
 
-        // Listen for restart event
         const handleStart = () => {
             setCurrentStep(0)
             setActive(true)
@@ -102,30 +100,38 @@ export default function ProductTour() {
         if (!active) return
 
         const step = TOUR_STEPS[currentStep]
-        if (step.position === 'center') {
-            setCoords({ top: window.innerHeight / 2, left: window.innerWidth / 2, width: 0, height: 0 })
-            return
+
+        // If step has a path and we are not on it, navigate
+        if (step.path && window.location.pathname !== step.path) {
+            router.push(step.path)
+            // Wait for navigation and DOM update
+            setTimeout(updateHighlight, 500)
+        } else {
+            updateHighlight()
         }
 
-        const el = document.getElementById(step.targetId)
-        if (el) {
-            const rect = el.getBoundingClientRect()
-            setCoords({
-                top: rect.top,
-                left: rect.left,
-                width: rect.width,
-                height: rect.height
-            })
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        } else {
-            // Target not found on this page? Skip it
-            if (currentStep < TOUR_STEPS.length - 1) {
-                setCurrentStep(currentStep + 1)
+        function updateHighlight() {
+            if (step.position === 'center') {
+                setCoords({ top: window.innerHeight / 2, left: window.innerWidth / 2, width: 0, height: 0 })
+                return
+            }
+
+            const el = document.getElementById(step.targetId)
+            if (el) {
+                const rect = el.getBoundingClientRect()
+                setCoords({
+                    top: rect.top,
+                    left: rect.left,
+                    width: rect.width,
+                    height: rect.height
+                })
+                // el.scrollIntoView({ behavior: 'smooth', block: 'center' })
             } else {
-                handleEndTour()
+                // If target not found yet, try again once
+                console.log('Target not found yet:', step.targetId)
             }
         }
-    }, [active, currentStep, windowSize])
+    }, [active, currentStep, windowSize, router])
 
     const handleNext = () => {
         if (currentStep < TOUR_STEPS.length - 1) {
@@ -147,7 +153,6 @@ export default function ProductTour() {
 
     return (
         <div className="fixed inset-0 z-[100] pointer-events-none">
-            {/* Dark Overlay with Hole */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -158,7 +163,6 @@ export default function ProductTour() {
                 }}
             />
 
-            {/* Step Card */}
             <AnimatePresence mode="wait">
                 <motion.div
                     key={currentStep}
@@ -210,7 +214,7 @@ export default function ProductTour() {
                                 onClick={handleNext}
                                 className="bg-accent hover:bg-accent-hover text-white px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-accent/20 transition-all active:scale-95"
                             >
-                                {currentStep === TOUR_STEPS.length - 1 ? 'Finish' : 'Next'}
+                                {currentStep === TOUR_STEPS.length - 1 ? 'Finish' : 'Next Step'}
                                 <ChevronRight size={14} />
                             </button>
                         </div>
@@ -218,7 +222,6 @@ export default function ProductTour() {
                 </motion.div>
             </AnimatePresence>
 
-            {/* Target Highlight Ring */}
             {!isCenter && (
                 <motion.div
                     animate={{
@@ -228,10 +231,11 @@ export default function ProductTour() {
                         height: coords.height + 8,
                         opacity: 1
                     }}
-                    className="absolute rounded-lg border-2 border-accent/50 shadow-[0_0_20px_rgba(124,58,237,0.3)] pointer-events-none"
+                    className="absolute rounded-xl border-2 border-accent/50 shadow-[0_0_20px_rgba(124,58,237,0.3)] pointer-events-none"
                     transition={{ type: "spring", damping: 15 }}
                 />
             )}
         </div>
     )
 }
+
